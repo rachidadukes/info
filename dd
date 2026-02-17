@@ -1,0 +1,17 @@
+Cannot Change Signature (Legacy .NET 4.7)
+response = MessageConverterClient.PostXmlAsync(request).GetAwaiter().GetResult()
+
+
+
+  =====================
+
+
+  Right now you have this inside SendToConverterEndpoint:
+
+Using client As New HttpClient()
+    client.Timeout = TimeSpan.FromSeconds(30)
+
+    Dim content As New StringContent(request, Encoding.UTF8, "application/xml")
+    Dim resp As HttpResponseMessage = client.PostAsync(endpointurl, content).Result
+    response = Task.Run(Function() resp.Content.ReadAsStringAsync()).Result
+End Using
