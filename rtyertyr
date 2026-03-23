@@ -1,1 +1,53 @@
+Imports NF.Encore.HostIntegrations.Api.MessageConverter.Helpers
 
+Public Function ShouldRouteToConverterEndpoint(xml As String) As Boolean
+    ' --- read routing mode and codes from <hostRouting> ---
+    Dim section As Specialized.NameValueCollection =
+        TryCast(ConfigurationManager.GetSection("hostRouting"), Specialized.NameValueCollection)
+
+    Dim routingMode As String = String.Empty
+
+    If section IsNot Nothing Then
+        routingMode = If(section("RoutingFlag"), String.Empty).Trim().ToUpper()
+    End If
+
+    If String.IsNullOrWhiteSpace(routingMode) Then
+        Return False
+    End If
+
+    Select Case routingMode
+        Case MessageConverterValues.HostRoutes.Legacy
+            ' Legacy only -> do not route to converter
+            Return False
+
+        Case MessageConverterValues.HostRoutes.New,
+             MessageConverterValues.HostRoutes.Both
+            ' Continue checking configured transaction codes
+
+        Case Else
+            ' Invalid config value
+            Return False
+    End Select
+
+    Dim codesCsv As String =
+        If(If(section IsNot Nothing, section("HostTranCodes"), Nothing), String.Empty)
+
+    If String.IsNullOrWhiteSpace(codesCsv) Then
+        Return False
+    End If
+
+    Dim codes As New HashSet(Of String)(
+        codesCsv.Split(New Char() {","c}, StringSplitOptions.RemoveEmptyEntries).
+            Select(Function(s) s.Trim()),
+        StringComparer.Ordinal)
+
+    Dim doc As XDocument = XDocument.Parse(xml)
+    Dim tranCode As String = doc.Descendants("TranCode").FirstOrDefault()?.Value?.Trim()
+
+    If String.IsNullOrEmpty(tranCode) Then
+        Return False
+    End If
+
+    ' Only route when the code is configured
+    Return codes.Contains(tranCode)
+End Function
