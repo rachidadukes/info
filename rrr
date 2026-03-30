@@ -1,33 +1,43 @@
-public static void SendToEndpointFireAndForget(string url, string sendMessage)
-{
-    Task.Run(async () =>
-    {
-        try
-        {
-            await SendToEndpointAsync(url, sendMessage).ConfigureAwait(false);
-        }
-        catch (Exception ex)
-        {
-            // Replace with your real logging framework
-            System.Diagnostics.Trace.TraceError(
-                "Fire-and-forget converter call failed. Url={0}. Error={1}",
-                url,
-                ex);
-        }
-    });
-}
+Select Case routingMode
 
-private static async Task<string> SendToEndpointAsync(string url, string sendMessage)
-{
-    var client = MessageConverterHttpClient.Instance;
+ Case MessageConverterValues.HostRoutes.LegacyEndpoint 
+Return False 
 
-    using (var content = new StringContent(sendMessage ?? "", Encoding.UTF8, "application/xml"))
-    using (var response = await client.PostAsync(url, content).ConfigureAwait(false))
-    {
-        // Optional but recommended:
-        response.EnsureSuccessStatusCode();
+Case MessageConverterValues.HostRoutes.NewEndpoint 
+' continue to tran code validation 
 
-        var body = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
-        return body;
-    }
-}
+Case MessageConverterValues.HostRoutes.BothEndpoints 
+              ' continue to tran code validation
+
+Case Else
+ Return False
+ End Select
+
+
+
+
+Dim shouldRoute As Boolean = codes.Contains(tranCode)
+
+If shouldRoute AndAlso routingMode = MessageConverterValues.HostRoutes.BothEndpoints Then
+    HandleBothEndpointsFireAndForget(xml)
+End If
+
+Return shouldRoute
+============================
+
+Private Sub HandleBothEndpointsFireAndForget(xml As String)
+    Dim url As String = GetConverterEndpointUrl()
+
+    If String.IsNullOrWhiteSpace(url) Then
+        Exit Sub
+    End If
+
+    MessageConverterSender.SendToEndpointFireAndForget(url, xml)
+End Sub
+
+====================
+Private Function GetConverterEndpointUrl() As String
+    Return ConfigurationManager.AppSettings("ConverterUrl")
+End Function
+
+
