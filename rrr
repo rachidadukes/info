@@ -1,0 +1,18 @@
+Select Case routingMode
+
+    Case MessageConverterValues.HostRoutes.LegacyEndpoint
+        ' Legacy only → do NOT route to converter
+        Return False
+
+    Case MessageConverterValues.HostRoutes.NewEndpoint
+        ' New only → continue to transaction code validation
+
+    Case MessageConverterValues.HostRoutes.BothEndpoints
+        ' Both → continue (for now behaves like New)
+        ' Later: this is where dual routing logic can be added
+
+    Case Else
+        ' Invalid config value
+        Return False
+
+End Select
