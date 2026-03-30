@@ -1,43 +1,28 @@
-Select Case routingMode
+namespace NF.Encore.HostIntegrations.Api.MessageConverter.Helpers
+{
+    public static class MessageConverterValues
+    {
+        public static class HostRoutes
+        {
+            public const string LegacyEndpoint = "L";
+            public const string NewEndpoint = "N";
+            public const string BothEndpoints = "B";
+        }
 
- Case MessageConverterValues.HostRoutes.LegacyEndpoint 
-Return False 
+        public static class ConfigKeys
+        {
+            public const string RoutingFlag = "RoutingFlag";
+            public const string HostTranCodes = "HostTranCodes";
+        }
+    }
+}
+===================================
+routingMode = If(section("RoutingFlag"), String.Empty).Trim().ToUpper()
+to be replaced by this
+routingMode = If(section(MessageConverterValues.ConfigKeys.RoutingFlag), String.Empty).Trim().ToUpper()
 
-Case MessageConverterValues.HostRoutes.NewEndpoint 
-' continue to tran code validation 
-
-Case MessageConverterValues.HostRoutes.BothEndpoints 
-              ' continue to tran code validation
-
-Case Else
- Return False
- End Select
-
-
-
-
-Dim shouldRoute As Boolean = codes.Contains(tranCode)
-
-If shouldRoute AndAlso routingMode = MessageConverterValues.HostRoutes.BothEndpoints Then
-    HandleBothEndpointsFireAndForget(xml)
-End If
-
-Return shouldRoute
-============================
-
-Private Sub HandleBothEndpointsFireAndForget(xml As String)
-    Dim url As String = GetConverterEndpointUrl()
-
-    If String.IsNullOrWhiteSpace(url) Then
-        Exit Sub
-    End If
-
-    MessageConverterSender.SendToEndpointFireAndForget(url, xml)
-End Sub
-
-====================
-Private Function GetConverterEndpointUrl() As String
-    Return ConfigurationManager.AppSettings("ConverterUrl")
-End Function
-
-
+==============================
+Dim codesCsv As String = If(If(section IsNot Nothing, section("HostTranCodes"), Nothing), String.Empty)
+Dim codesCsv As String =
+to be replaced by this
+    If(If(section IsNot Nothing, section(MessageConverterValues.ConfigKeys.HostTranCodes), Nothing), String.Empty)
