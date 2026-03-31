@@ -1,7 +1,2 @@
 
-Fire-and-forget doesn’t allow us to return a response because the call executes asynchronously.
-A practical approach would be to keep the new endpoint as fire-and-forget, and execute the legacy call synchronously so we can capture and return its response.
 
-✔️ Key message you’re conveying
-Fire-and-forget = no response
-Need response = must wait (sync or await)
