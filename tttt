@@ -1,1 +1,65 @@
 
+Public Function ShouldRouteToConverterEndpoint(xml As String) As String
+
+    ' --- read flag and codes from <hostRouting> ---
+    Dim section As NameValueCollection =
+        TryCast(ConfigurationManager.GetSection("hostRouting"), NameValueCollection)
+
+    Dim routingMode As String = String.Empty
+
+    If section IsNot Nothing Then
+        routingMode = If(section(MessageConverterValues.ConfigKeys.RoutingFlag), String.Empty) _
+                        .Trim().ToUpper()
+    End If
+
+    ' Default to Legacy if missing
+    If String.IsNullOrWhiteSpace(routingMode) Then
+        Return MessageConverterValues.HostRoutes.LegacyEndpoint
+    End If
+
+    ' Validate allowed routing values
+    Select Case routingMode
+        Case MessageConverterValues.HostRoutes.LegacyEndpoint,
+             MessageConverterValues.HostRoutes.NewEndpoint,
+             MessageConverterValues.HostRoutes.BothEndpoints
+            ' valid → continue
+        Case Else
+            Return MessageConverterValues.HostRoutes.LegacyEndpoint
+    End Select
+
+    ' --- read allowed transaction codes ---
+    Dim codesCsv As String =
+        If(If(section IsNot Nothing,
+              section(MessageConverterValues.ConfigKeys.HostTranCodes),
+              Nothing),
+           String.Empty)
+
+    If String.IsNullOrWhiteSpace(codesCsv) Then
+        Return MessageConverterValues.HostRoutes.LegacyEndpoint
+    End If
+
+    Dim codes As New HashSet(Of String)(
+        codesCsv.Split(New Char() {","c}, StringSplitOptions.RemoveEmptyEntries) _
+                .Select(Function(s) s.Trim()),
+        StringComparer.OrdinalIgnoreCase
+    )
+
+    ' --- parse XML and extract TranCode ---
+    Dim doc As XDocument = XDocument.Parse(xml)
+
+    Dim tranCode As String =
+        doc.Descendants("TranCode").FirstOrDefault()?.Value?.Trim()
+
+    If String.IsNullOrEmpty(tranCode) Then
+        Return MessageConverterValues.HostRoutes.LegacyEndpoint
+    End If
+
+    ' --- final validation ---
+    If Not codes.Contains(tranCode) Then
+        Return MessageConverterValues.HostRoutes.LegacyEndpoint
+    End If
+
+    ' --- return actual routing mode ---
+    Return routingMode
+
+End Function
