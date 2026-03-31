@@ -1,14 +1,10 @@
-public static void SendToEndpointFireAndForget(string url, string sendMessage)
+private static async Task<string> SendToEndpointAsync(string url, string sendMessage)
 {
-    Task.Run(async () =>
+    var client = MessageConverterHttpClient.Instance;
+
+    using (var content = new StringContent(sendMessage ?? "", Encoding.UTF8, "application/xml"))
+    using (var response = await client.PostAsync(url, content).ConfigureAwait(false))
     {
-        try
-        {
-            await SendToEndpointAsync(url, sendMessage).ConfigureAwait(false);
-        }
-        catch (Exception ex)
-        {
-            // TODO: log exception (VERY important in fire-and-forget)
-        }
-    });
+        return await response.Content.ReadAsStringAsync().ConfigureAwait(false);
+    }
 }
