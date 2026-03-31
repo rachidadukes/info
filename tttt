@@ -1,10 +1,1 @@
-private static async Task<string> SendToEndpointAsync(string url, string sendMessage)
-{
-    var client = MessageConverterHttpClient.Instance;
 
-    using (var content = new StringContent(sendMessage ?? "", Encoding.UTF8, "application/xml"))
-    using (var response = await client.PostAsync(url, content).ConfigureAwait(false))
-    {
-        return await response.Content.ReadAsStringAsync().ConfigureAwait(false);
-    }
-}
