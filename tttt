@@ -1,21 +1,30 @@
-Dim routingMode As String = ShouldRouteToConverterEndpoint(sSendBuf)
+Private Sub SendToBothEndpointsFireAndForget(xml As String,
+                                             msgCategory As String,
+                                             hostAdapterAssembly As String)
 
-Select Case routingMode
+    ' Fire-and-forget to NEW endpoint
+    Task.Run(Sub()
+                 Try
+                     Dim url As String = ConfigurationManager.AppSettings("ConverterUrl")
 
-    Case MessageConverterValues.HostRoutes.LegacyEndpoint
-        ' continue sending to the existing service
-        sSendBuf = ReplaceSpecialChars(sSendBuf)
-        Sending(sMsgCategory, sHostAdapterAssembly, sSendBuf, sRecvBuf)
+                     If Not String.IsNullOrWhiteSpace(url) Then
+                         MessageConverterSender.SendToEndpointFireAndForget(url, xml)
+                     End If
+                 Catch ex As Exception
+                     ' TODO: log
+                 End Try
+             End Sub)
 
-    Case MessageConverterValues.HostRoutes.NewEndpoint
-        ' send to new service
-        SendToConverterEndpoint2(sSendBuf, sRecvBuf)
+    ' Fire-and-forget to LEGACY endpoint
+    Task.Run(Sub()
+                 Try
+                     Dim sendBuf As String = ReplaceSpecialChars(xml)
+                     Dim recvBuf As String = String.Empty
 
-    Case MessageConverterValues.HostRoutes.BothEndpoints
-        ' send to new service
-        SendToConverterEndpoint2(sSendBuf, sRecvBuf)
+                     Sending(msgCategory, hostAdapterAssembly, sendBuf, recvBuf)
+                 Catch ex As Exception
+                     ' TODO: log
+                 End Try
+             End Sub)
 
-        ' fire-and-forget
-        HandleBothEndpointsFireAndForget(sSendBuf)
-
-End Select
+End Sub
