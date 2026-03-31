@@ -1,6 +1,10 @@
-Private Sub SendToBothEndpointsFireAndForget(xml As String,
-                                             msgCategory As String,
-                                             hostAdapterAssembly As String)
+' With  Fire-and-forget, we can't have no return
+' If we really want response, we can't fire-and-forget
+
+
+Private Function SendToBothEndpoints(xml As String,
+                                     msgCategory As String,
+                                     hostAdapterAssembly As String) As String
 
     ' Fire-and-forget to NEW endpoint
     Task.Run(Sub()
@@ -8,23 +12,19 @@ Private Sub SendToBothEndpointsFireAndForget(xml As String,
                      Dim url As String = ConfigurationManager.AppSettings("ConverterUrl")
 
                      If Not String.IsNullOrWhiteSpace(url) Then
-                         MessageConverterSender.SendToEndpointFireAndForget(url, xml)
+                         MessageConverterSender.SendToNewEndpointFireAndForget(url, xml)
                      End If
                  Catch ex As Exception
                      ' TODO: log
                  End Try
              End Sub)
 
-    ' Fire-and-forget to LEGACY endpoint
-    Task.Run(Sub()
-                 Try
-                     Dim sendBuf As String = ReplaceSpecialChars(xml)
-                     Dim recvBuf As String = String.Empty
+    ' Synchronous LEGACY call (this returns the response)
+    Dim sendBuf As String = ReplaceSpecialChars(xml)
+    Dim recvBuf As String = String.Empty
 
-                     Sending(msgCategory, hostAdapterAssembly, sendBuf, recvBuf)
-                 Catch ex As Exception
-                     ' TODO: log
-                 End Try
-             End Sub)
+    Sending(msgCategory, hostAdapterAssembly, sendBuf, recvBuf)
 
-End Sub
+    Return recvBuf
+
+End Function
