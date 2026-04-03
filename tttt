@@ -1,2 +1,54 @@
 
 
+Web.config
+
+
+<configuration>
+<configSections>
+	<section name="hostRouting"
+			 type="System.Configuration.NameValueSectionHandler" />
+</configSections>
+
+<hostRouting>
+	<!-- RoutingFlag values:
+       L = Legacy system only
+       N = New converter endpoint
+       B = Both (dual routing) -->
+	<add key="RoutingFlag" value="N" />
+
+	<add key="HostTranCodes"
+		 value="1806,1807,1810,1906,1907,1910,2906,2907,2910,3101,3102,3103,3104,3111,3112,3113,3202,3203,3211,3212" />
+</hostRouting>
+
+<appSettings file="appSettings.config">
+	<add key="hostparainfofile"
+		 value="C:\Code\encore-main\Server\DataAccess\SPParaInfo\sqlHostSpParaInfo.xml" />
+
+	<add key="EVAnalyzerURI"
+		 value="http://dtn-vsrv-touche/HES_TAService/Analyzer.asmx" />
+
+	<!-- Sample Host URL Below: -->
+
+	<add key="HostURL"
+		 value="https://unit-dpa-01-plt0.nfcutest.net:5501/NFBranchExService/FinancialPostingService" />
+
+	<add key="HostMemberSearchURL"
+		 value="https://unit-dpa-01-plt0.nfcutest.net:5502/NFBranchExService/MemberTransactionService" />
+
+	<add key="HostAcctInquiryURL"
+		 value="https://unit-dpa-01-plt0.nfcutest.net:5503/NFBranchExService/FinancialInquiryService" />
+
+	<add key="HostCashBoxURL"
+		 value="https://unit-dpa-01-plt0.nfcutest.net:5504/NFBranchExService/TellerTransactionService" />
+
+	<add key="MessageConverterURL"
+		 value="https://svwcdcvenceje01.nfcu.net:8443/EncoreCore/api/MessageConverter/ConvertMessage" />
+
+	<add key="HostMsgLogTrace" value="sendandreceive" />
+
+	<add key="HostSimulator"
+		 value="C:\14.2\Host Simulator" />
+</appSettings>
+
+
+</configuration>
