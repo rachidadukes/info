@@ -1,11 +1,1 @@
 
--- Script Date: 4/14/2026 12:45 PM  - ErikEJ.SqlCeScripting version 3.5.2.103
-CREATE TABLE [URL] (
-  [ID] INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL
-, [Endpoint] text NULL
-, [Type] text NULL
-);
-
-
-ALTER TABLE Requests ADD COLUMN Type TEXT;
-
