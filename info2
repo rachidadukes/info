@@ -1,7 +1,41 @@
 
-var client = new MemberTransactionWsClient();
+private async Task<string> GetLegacyResponseAsync(string requestXml, string endpoint)
+{
+    try
+    {
+        MemberTransactionWsClient _client = new MemberTransactionWsClient();
 
-// override endpoint
-client.Endpoint.Address = new System.ServiceModel.EndpointAddress(
-    "https://unit-dpa-01-plt0.nfcutest.net:5502/NFBranchExService/MemberTransactionService.svc"
-);
+        _client.Endpoint.Address = new System.ServiceModel.EndpointAddress(
+            "https://unit-dpa-01-plt0.nfcutest.net:5502/NFBranchExService/MemberTransactionService.svc"
+        );
+
+        SearchMemberRq inqRq = XmlConverter.Deserialize<SearchMemberRq>(requestXml);
+
+        searchForMemberResponseMessage responseMessage =
+            await _client.searchForMemberAsync(inqRq);
+
+        SearchMemberRs result = responseMessage.SearchMemberRs;
+
+        return result?.ToString() ?? string.Empty;
+    }
+    catch (InvalidOperationException ex) when (ex.InnerException is System.Xml.XmlException xmlEx)
+    {
+        Console.WriteLine("===== XML DESERIALIZATION ERROR =====");
+        Console.WriteLine($"Message  : {xmlEx.Message}");
+        Console.WriteLine($"Line     : {xmlEx.LineNumber}");
+        Console.WriteLine($"Position : {xmlEx.LinePosition}");
+        return string.Empty;
+    }
+    catch (System.ServiceModel.CommunicationException ce)
+    {
+        Console.WriteLine("===== COMMUNICATION ERROR =====");
+        Console.WriteLine(ce.Message);
+        return string.Empty;
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine("===== UNEXPECTED ERROR =====");
+        Console.WriteLine(ex);
+        return string.Empty;
+    }
+}
