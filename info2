@@ -1,18 +1,7 @@
 
-using System.IO;
-using System.Xml.Serialization;
+var client = new MemberTransactionWsClient();
 
-public static class XmlConverter
-{
-    public static T Deserialize<T>(string xml)
-    {
-        var serializer = new XmlSerializer(typeof(T));
-
-        using var reader = new StringReader(xml);
-        return (T)serializer.Deserialize(reader);
-    }
-}
-
-
-
-SearchMemberRq request = XmlConverter.Deserialize<SearchMemberRq>(requestXml);
+// override endpoint
+client.Endpoint.Address = new System.ServiceModel.EndpointAddress(
+    "https://unit-dpa-01-plt0.nfcutest.net:5502/NFBranchExService/MemberTransactionService.svc"
+);
