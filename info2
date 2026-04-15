@@ -1,2 +1,1 @@
 
-ALTER TABLE URL ADD COLUMN Environment TEXT;
