@@ -1,1 +1,18 @@
 
+using System.IO;
+using System.Xml.Serialization;
+
+public static class XmlConverter
+{
+    public static T Deserialize<T>(string xml)
+    {
+        var serializer = new XmlSerializer(typeof(T));
+
+        using var reader = new StringReader(xml);
+        return (T)serializer.Deserialize(reader);
+    }
+}
+
+
+
+SearchMemberRq request = XmlConverter.Deserialize<SearchMemberRq>(requestXml);
