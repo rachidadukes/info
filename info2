@@ -1,12 +1,1 @@
-public static class UrlTypes
-{
-    public const string Transaction    = "Transaction";
-    public const string SearchForMember = "SearchForMember";
-    public const string MemberProfile  = "MemberProfile";
-}
 
-
-
-    SendButton.IsEnabled        = string.Equals(type, UrlTypes.Transaction,     StringComparison.OrdinalIgnoreCase);
-    MemberSearchButton.IsEnabled = string.Equals(type, UrlTypes.SearchForMember, StringComparison.OrdinalIgnoreCase);
-    MemberInfoButton.IsEnabled   = string.Equals(type, UrlTypes.MemberProfile,   StringComparison.OrdinalIgnoreCase);
