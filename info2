@@ -7,7 +7,7 @@ using System.Text;
 using System.Xml;
 using System.Xml.Serialization;
 
-public static class XmlHelper
+public static class ObjectToXmlSerializer
 {
     public static string ToXmlString<T>(T value)
     {
