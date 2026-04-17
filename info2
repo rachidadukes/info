@@ -1,55 +1,55 @@
-    private async Task CDdepositAPIAsync()
-   {
-       var requestBody = GetRichTextBoxText(SelectedRequestRichTextBox);
+ private async Task IRA_CDdepositAPIAsync()
+ {
+     var requestBody = GetRichTextBoxText(SelectedRequestRichTextBox);
 
-       if (string.IsNullOrWhiteSpace(requestBody))
-       {
-           MessageBox.Show("Select a request before calling the API.", "No Request Selected", MessageBoxButton.OK, MessageBoxImage.Information);
-           return;
-       }
+     if (string.IsNullOrWhiteSpace(requestBody))
+     {
+         MessageBox.Show("Select a request before calling the API.", "No Request Selected", MessageBoxButton.OK, MessageBoxImage.Information);
+         return;
+     }
 
-       if (UrlListBox.SelectedItem is not UrlItem selectedUrl || string.IsNullOrWhiteSpace(selectedUrl.Endpoint))
-       {
-           MessageBox.Show("Select an endpoint before calling the API.", "No Endpoint Selected", MessageBoxButton.OK, MessageBoxImage.Information);
-           return;
-       }
+     if (UrlListBox.SelectedItem is not UrlItem selectedUrl || string.IsNullOrWhiteSpace(selectedUrl.Endpoint))
+     {
+         MessageBox.Show("Select an endpoint before calling the API.", "No Endpoint Selected", MessageBoxButton.OK, MessageBoxImage.Information);
+         return;
+     }
 
-       var selectedRequest  = RequestsListBox.SelectedItem as RequestListItem;
-       var description      = selectedRequest?.Description ?? string.Empty;
-       var requestType      = selectedRequest?.Type        ?? TransactionType.CD_Deposit;
+     var selectedRequest  = RequestsListBox.SelectedItem as RequestListItem;
+     var description      = selectedRequest?.Description ?? string.Empty;
+     var requestType      = selectedRequest?.Type        ?? TransactionType.IRA_CD_Deposit;
 
-       IRA_CDdepositButton.IsEnabled = false;
-       MemberSearchButton.IsEnabled  = false;
-       MemberInfoButton.IsEnabled    = false;
-       StatusTextBlock.Text = "Sending CD Deposit request...";
+     CDdepositButton.IsEnabled    = false;
+     MemberSearchButton.IsEnabled = false;
+     MemberInfoButton.IsEnabled   = false;
+     StatusTextBlock.Text = "Sending IRA CD Deposit request...";
 
-       try
-       {
-           var cdDeposit = new CDdeposit();
-           var responseBody = await cdDeposit.GetResponseAsync(requestBody, selectedUrl.Endpoint, Legacy);
+     try
+     {
+         var cdDeposit = new CDdeposit();
+         var responseBody = await cdDeposit.GetResponseAsync(requestBody, selectedUrl.Endpoint, Legacy);
 
-           StatusTextBlock.Text = "CD Deposit completed.";
-           ResponseTextBox.Text = FormatXmlIfPossible(responseBody);
-           ResponseTab.IsSelected = true;
+         StatusTextBlock.Text = "IRA CD Deposit completed.";
+         ResponseTextBox.Text = FormatXmlIfPossible(responseBody);
+         ResponseTab.IsSelected = true;
 
-           var entry = new ApiCallHistory(DateTime.Now, description, requestBody, responseBody, null, TransactionType.CD_Deposit, !string.IsNullOrWhiteSpace(responseBody), requestType, selectedUrl.Environment);
-           await SaveResponseAsync(entry);
+         var entry = new ApiCallHistory(DateTime.Now, description, requestBody, responseBody, null, TransactionType.IRA_CD_Deposit, !string.IsNullOrWhiteSpace(responseBody), requestType, selectedUrl.Environment);
+         await SaveResponseAsync(entry);
 
-           MessageBox.Show("CD Deposit completed. Check the Response tab for details.", "CD Deposit Complete", MessageBoxButton.OK, MessageBoxImage.Information);
-       }
-       catch (Exception ex)
-       {
-           StatusTextBlock.Text = "CD Deposit failed.";
-           ResponseTextBox.Text = ex.ToString();
-           ResponseTab.IsSelected = true;
+         MessageBox.Show("CD Deposit completed. Check the Response tab for details.", "IRA CD Deposit Complete", MessageBoxButton.OK, MessageBoxImage.Information);
+     }
+     catch (Exception ex)
+     {
+         StatusTextBlock.Text = "IRA CD Deposit failed.";
+         ResponseTextBox.Text = ex.ToString();
+         ResponseTab.IsSelected = true;
 
-           MessageBox.Show("CD Deposit failed. Check the Response tab for details.", "CD Deposit Failed", MessageBoxButton.OK, MessageBoxImage.Warning);
-       }
-       finally
-       {
-           var type = (UrlListBox.SelectedItem as UrlItem)?.Type ?? string.Empty;
-           CDdepositButton.IsEnabled    = string.Equals(type, TransactionType.CD_Deposit,     StringComparison.OrdinalIgnoreCase);
-           MemberSearchButton.IsEnabled = string.Equals(type, TransactionType.MemberSearch, StringComparison.OrdinalIgnoreCase);
-           MemberInfoButton.IsEnabled   = string.Equals(type, TransactionType.MemberProfile,   StringComparison.OrdinalIgnoreCase);
-       }
-   }
+         MessageBox.Show("IRA CD Deposit failed. Check the Response tab for details.", "IRA CD Deposit Failed", MessageBoxButton.OK, MessageBoxImage.Warning);
+     }
+     finally
+     {
+         var type = (UrlListBox.SelectedItem as UrlItem)?.Type ?? string.Empty;
+         CDdepositButton.IsEnabled = string.Equals(type, TransactionType.CD_Deposit, StringComparison.OrdinalIgnoreCase);
+         MemberSearchButton.IsEnabled = string.Equals(type, TransactionType.MemberSearch, StringComparison.OrdinalIgnoreCase);
+         MemberInfoButton.IsEnabled = string.Equals(type, TransactionType.MemberProfile, StringComparison.OrdinalIgnoreCase);
+     }
+ }
