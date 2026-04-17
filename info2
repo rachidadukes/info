@@ -1,145 +1,95 @@
-public partial class HistoryControl : UserControl
-{
-    private string _databasePath = string.Empty;
-    private readonly ObservableCollection<RequestItem> _requests = [];
+    <Grid Margin="14">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="120" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
 
-    public HistoryControl()
-    {
-        InitializeComponent();
-        HistoryListBox.ItemsSource = _requests;
-    }
+        <!-- Requests list (distinct Description / Type / Environment from Responses table) -->
+        <TextBlock Grid.Row="0"
+                   Margin="0,0,0,6"
+                   FontSize="13"
+                   FontWeight="SemiBold"
+                   Foreground="#35546E"
+                   Text="Requests" />
 
-    public async Task InitializeAsync(string databasePath)
-    {
-        _databasePath = databasePath;
-        await LoadRequestsAsync();
-    }
+        <ListView x:Name="HistoryListBox"
+                  Grid.Row="1"
+                  BorderThickness="1"
+                  BorderBrush="#D6E0EA"
+                  FontFamily="Consolas"
+                  FontSize="13"
+                  Margin="0,0,0,12"
+                  SelectionMode="Single"
+                  SelectionChanged="HistoryListBox_OnSelectionChanged">
+            <ListView.View>
+                <GridView>
+                    <GridViewColumn Header="Description"
+                                    Width="420"
+                                    DisplayMemberBinding="{Binding Description}" />
+                    <GridViewColumn Header="Type"
+                                    Width="180"
+                                    DisplayMemberBinding="{Binding Type}" />
+                    <GridViewColumn Header="Environment"
+                                    Width="120"
+                                    DisplayMemberBinding="{Binding Environment}" />
+                </GridView>
+            </ListView.View>
+        </ListView>
 
-    private async Task LoadRequestsAsync()
-    {
-        _requests.Clear();
-        if (!File.Exists(_databasePath)) return;
+        <!-- Request label + selected entry info -->
+        <StackPanel Grid.Row="2"
+                    Orientation="Horizontal"
+                    Margin="0,0,0,6">
+            <TextBlock FontSize="13"
+                       FontWeight="SemiBold"
+                       Foreground="#183B56"
+                       Text="Request" />
+            <TextBlock x:Name="TimestampLabel"
+                       Margin="14,0,0,0"
+                       FontSize="13"
+                       Foreground="#35546E"
+                       Text="— select a response above" />
+            <TextBlock x:Name="StatusLabel"
+                       Margin="14,0,0,0"
+                       FontSize="13"
+                       FontWeight="SemiBold" />
+        </StackPanel>
 
-        try
-        {
-            await using var connection = new SqliteConnection($"Data Source={_databasePath}");
-            await connection.OpenAsync();
+        <TextBox x:Name="RequestDetailTextBox"
+                 Grid.Row="3"
+                 Margin="0,0,0,12"
+                 Padding="10"
+                 FontFamily="Consolas"
+                 FontSize="13"
+                 IsReadOnly="True"
+                 AcceptsReturn="True"
+                 AcceptsTab="True"
+                 TextWrapping="NoWrap"
+                 HorizontalScrollBarVisibility="Auto"
+                 VerticalScrollBarVisibility="Auto" />
 
-            // Distinct Description / Type / Environment from the Responses table
-            const string sql = """
-                SELECT DISTINCT Description, Type, Environment
-                FROM Responses
-                ORDER BY Description
-                """;
+        <!-- Response section -->
+        <TextBlock Grid.Row="4"
+                   Margin="0,0,0,6"
+                   FontSize="13"
+                   FontWeight="SemiBold"
+                   Foreground="#183B56"
+                   Text="Response" />
 
-            await using var command = new SqliteCommand(sql, connection);
-            await using var reader  = await command.ExecuteReaderAsync();
-
-            while (await reader.ReadAsync())
-            {
-                _requests.Add(new RequestItem(
-                    reader.IsDBNull(0) ? string.Empty : reader.GetString(0),
-                    reader.IsDBNull(1) ? string.Empty : reader.GetString(1),
-                    reader.IsDBNull(2) ? string.Empty : reader.GetString(2)));
-            }
-        }
-        catch (Exception ex)
-        {
-            MessageBox.Show(ex.Message, "Error Loading Requests", MessageBoxButton.OK, MessageBoxImage.Error);
-        }
-    }
-
-    private async void HistoryListBox_OnSelectionChanged(object sender, SelectionChangedEventArgs e)
-    {
-        RequestDetailTextBox.Clear();
-        ResponseDetailTextBox.Clear();
-        TimestampLabel.Text = "— select a response above";
-        StatusLabel.Text    = string.Empty;
-
-        if (HistoryListBox.SelectedItem is not RequestItem item) return;
-
-        await LoadLatestResponseAsync(item);
-    }
-
-    private async Task LoadLatestResponseAsync(RequestItem item)
-    {
-        if (!File.Exists(_databasePath)) return;
-
-        try
-        {
-            await using var connection = new SqliteConnection($"Data Source={_databasePath}");
-            await connection.OpenAsync();
-
-            const string sql = """
-                SELECT Request, Response, DateStamp, StatusCode, StatusPhrase
-                FROM Responses
-                WHERE Description = @desc
-                  AND (Type        = @type        OR (@type        IS NULL AND Type        IS NULL))
-                  AND (Environment = @environment OR (@environment IS NULL AND Environment IS NULL))
-                ORDER BY rowid DESC
-                LIMIT 1
-                """;
-
-            await using var command = new SqliteCommand(sql, connection);
-            command.Parameters.AddWithValue("@desc",        (object?)item.Description  ?? DBNull.Value);
-            command.Parameters.AddWithValue("@type",        (object?)item.Type         ?? DBNull.Value);
-            command.Parameters.AddWithValue("@environment", (object?)item.Environment  ?? DBNull.Value);
-
-            await using var reader = await command.ExecuteReaderAsync();
-
-            if (!await reader.ReadAsync()) return;
-
-            var requestBody  = reader.IsDBNull(0) ? string.Empty : reader.GetString(0);
-            var responseBody = reader.IsDBNull(1) ? string.Empty : reader.GetString(1);
-            var dateStamp    = reader.IsDBNull(2) ? string.Empty : reader.GetString(2);
-            int? statusCode  = reader.IsDBNull(3) ? null : reader.GetInt32(3);
-            var statusPhrase = reader.IsDBNull(4) ? null : reader.GetString(4);
-
-            TimestampLabel.Text        = dateStamp;
-            StatusLabel.Text           = statusCode.HasValue ? $"  |  {statusCode} {statusPhrase}" : string.Empty;
-            RequestDetailTextBox.Text  = FormatXmlIfPossible(requestBody);
-            ResponseDetailTextBox.Text = FormatXmlIfPossible(responseBody);
-        }
-        catch (Exception ex)
-        {
-            MessageBox.Show(ex.Message, "Error Loading Response", MessageBoxButton.OK, MessageBoxImage.Error);
-        }
-    }
-
-    private static string FormatXmlIfPossible(string text)
-    {
-        if (string.IsNullOrWhiteSpace(text)) return text;
-
-        try
-        {
-            using var stringReader = new StringReader(text.Trim());
-            using var xmlReader    = XmlReader.Create(stringReader, new XmlReaderSettings { IgnoreWhitespace = true });
-            var document = XDocument.Load(xmlReader, LoadOptions.None);
-            var settings = new XmlWriterSettings
-            {
-                Indent              = true,
-                IndentChars         = "  ",
-                NewLineChars        = Environment.NewLine,
-                NewLineHandling     = NewLineHandling.Replace,
-                OmitXmlDeclaration  = document.Declaration is null
-            };
-            using var sw = new System.IO.StringWriter();
-            using var xw = XmlWriter.Create(sw, settings);
-            document.Save(xw);
-            xw.Flush();
-            return sw.ToString();
-        }
-        catch
-        {
-            return text;
-        }
-    }
-}
-
-public sealed class RequestItem(string description, string type, string environment)
-{
-    public string Description { get; } = description;
-    public string Type        { get; } = type;
-    public string Environment { get; } = environment;
-}
-
+        <TextBox x:Name="ResponseDetailTextBox"
+                 Grid.Row="5"
+                 Padding="10"
+                 FontFamily="Consolas"
+                 FontSize="13"
+                 IsReadOnly="True"
+                 AcceptsReturn="True"
+                 AcceptsTab="True"
+                 TextWrapping="NoWrap"
+                 HorizontalScrollBarVisibility="Auto"
+                 VerticalScrollBarVisibility="Auto" />
+    </Grid>
+</UserControl>
