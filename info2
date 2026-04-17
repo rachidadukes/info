@@ -1,1 +1,30 @@
 
+ private async Task SaveResponseAsync(ApiCallHistory entry)
+ {
+     try
+     {
+         await using var connection = new SqliteConnection($"Data Source={_databasePath}");
+         await connection.OpenAsync();
+
+         const string sql = """
+             INSERT INTO Responses (Description, Request, Response, DateStamp, StatusCode, StatusPhrase, Type, Environment)
+             VALUES (@description, @request, @response, @dateStamp, @statusCode, @statusPhrase, @type, @environment)
+             """;
+
+         await using var command = new SqliteCommand(sql, connection);
+         command.Parameters.AddWithValue("@description",  (object?)entry.Description  ?? DBNull.Value);
+         command.Parameters.AddWithValue("@request",      (object?)entry.RequestBody   ?? DBNull.Value);
+         command.Parameters.AddWithValue("@response",     (object?)entry.ResponseBody  ?? DBNull.Value);
+         command.Parameters.AddWithValue("@dateStamp",    entry.Timestamp.ToString("yyyy-MM-dd HH:mm:ss"));
+         command.Parameters.AddWithValue("@statusCode",   (object?)entry.StatusCode    ?? DBNull.Value);
+         command.Parameters.AddWithValue("@statusPhrase", (object?)entry.StatusPhrase  ?? DBNull.Value);
+         command.Parameters.AddWithValue("@type",         (object?)entry.Type          ?? DBNull.Value);
+         command.Parameters.AddWithValue("@environment",  (object?)entry.Environment   ?? DBNull.Value);
+
+         await command.ExecuteNonQueryAsync();
+     }
+     catch (Exception ex)
+     {
+         StatusTextBlock.Text = $"Warning: could not save to Responses table — {ex.Message}";
+     }
+ }
