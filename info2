@@ -1,54 +1,17 @@
+await using var connection = new SqliteConnection($"Data Source={_databasePath}");
+await connection.OpenAsync();
 
-  private async Task CDdepositAPIAsync()
-  {
-      var requestBody = GetRichTextBoxText(SelectedRequestRichTextBox);
+// When URL type is "Transaction", load everything that isn't MemberSearch/MemberProfile
+bool isTransaction = string.Equals(type, "Transaction", StringComparison.OrdinalIgnoreCase);
 
-      if (string.IsNullOrWhiteSpace(requestBody))
-      {
-          MessageBox.Show("Select a request before calling the API.", "No Request Selected", MessageBoxButton.OK, MessageBoxImage.Information);
-          return;
-      }
+var sql = string.IsNullOrWhiteSpace(type)
+    ? "SELECT ID, Description, Type, Request FROM Requests ORDER BY ID"
+    : isTransaction
+        ? "SELECT ID, Description, Type, Request FROM Requests WHERE Type NOT IN ('MemberSearch', 'MemberProfile') ORDER BY ID"
+        : "SELECT ID, Description, Type, Request FROM Requests WHERE Type = @type ORDER BY ID";
 
-      if (UrlListBox.SelectedItem is not UrlItem selectedUrl || string.IsNullOrWhiteSpace(selectedUrl.Endpoint))
-      {
-          MessageBox.Show("Select an endpoint before calling the API.", "No Endpoint Selected", MessageBoxButton.OK, MessageBoxImage.Information);
-          return;
-      }
+await using var command = new SqliteCommand(sql, connection);
+if (!string.IsNullOrWhiteSpace(type) && !isTransaction)
+    command.Parameters.AddWithValue("@type", type);
 
-      var description = (RequestsListBox.SelectedItem as RequestListItem)?.Description ?? string.Empty;
-
-      CDdepositButton.IsEnabled    = false;
-      MemberSearchButton.IsEnabled = false;
-      MemberInfoButton.IsEnabled   = false;
-      StatusTextBlock.Text = "Sending CD Deposit request...";
-
-      try
-      {
-          var cdDeposit = new CDdeposit();
-          var responseBody = await cdDeposit.GetResponseAsync(requestBody, selectedUrl.Endpoint, Legacy);
-
-          StatusTextBlock.Text = "CD Deposit completed.";
-          ResponseTextBox.Text = FormatXmlIfPossible(responseBody);
-          ResponseTab.IsSelected = true;
-
-          var entry = new ApiCallHistory(DateTime.Now, description, requestBody, responseBody, null, UrlTypes.Transaction, !string.IsNullOrWhiteSpace(responseBody));
-          await SaveResponseAsync(entry);
-
-          MessageBox.Show("CD Deposit completed. Check the Response tab for details.", "CD Deposit Complete", MessageBoxButton.OK, MessageBoxImage.Information);
-      }
-      catch (Exception ex)
-      {
-          StatusTextBlock.Text = "CD Deposit failed.";
-          ResponseTextBox.Text = ex.ToString();
-          ResponseTab.IsSelected = true;
-
-          MessageBox.Show("CD Deposit failed. Check the Response tab for details.", "CD Deposit Failed", MessageBoxButton.OK, MessageBoxImage.Warning);
-      }
-      finally
-      {
-          var type = (UrlListBox.SelectedItem as UrlItem)?.Type ?? string.Empty;
-          CDdepositButton.IsEnabled    = string.Equals(type, UrlTypes.Transaction,     StringComparison.OrdinalIgnoreCase);
-          MemberSearchButton.IsEnabled = string.Equals(type, UrlTypes.SearchForMember, StringComparison.OrdinalIgnoreCase);
-          MemberInfoButton.IsEnabled   = string.Equals(type, UrlTypes.MemberProfile,   StringComparison.OrdinalIgnoreCase);
-      }
-  }
+await using var reader = await command.ExecuteReaderAsync();
