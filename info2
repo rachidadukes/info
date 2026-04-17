@@ -1,1 +1,3 @@
 
+ALTER TABLE Responses ADD COLUMN Environment TEXT;
+ALTER TABLE Responses ADD COLUMN Type        TEXT;
