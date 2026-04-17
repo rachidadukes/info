@@ -1,17 +1,1 @@
-await using var connection = new SqliteConnection($"Data Source={_databasePath}");
-await connection.OpenAsync();
 
-// When URL type is "Transaction", load everything that isn't MemberSearch/MemberProfile
-bool isTransaction = string.Equals(type, "Transaction", StringComparison.OrdinalIgnoreCase);
-
-var sql = string.IsNullOrWhiteSpace(type)
-    ? "SELECT ID, Description, Type, Request FROM Requests ORDER BY ID"
-    : isTransaction
-        ? "SELECT ID, Description, Type, Request FROM Requests WHERE Type NOT IN ('MemberSearch', 'MemberProfile') ORDER BY ID"
-        : "SELECT ID, Description, Type, Request FROM Requests WHERE Type = @type ORDER BY ID";
-
-await using var command = new SqliteCommand(sql, connection);
-if (!string.IsNullOrWhiteSpace(type) && !isTransaction)
-    command.Parameters.AddWithValue("@type", type);
-
-await using var reader = await command.ExecuteReaderAsync();
