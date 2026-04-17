@@ -1,4 +1,4 @@
- private async Task CallMemberSearchAsync()
+ private async Task CallMemberProfileAsync()
  {
      var requestBody = GetRichTextBoxText(SelectedRequestRichTextBox);
 
@@ -16,32 +16,32 @@
 
      var selectedRequest  = RequestsListBox.SelectedItem as RequestListItem;
      var description      = selectedRequest?.Description ?? string.Empty;
-     var requestType      = selectedRequest?.Type        ?? TransactionType.MemberSearch;
+     var requestType      = selectedRequest?.Type        ?? TransactionType.MemberProfile;
 
      MemberSearchButton.IsEnabled = false;
-     StatusTextBlock.Text = "Sending Member Search request...";
+     StatusTextBlock.Text = "Sending Member Profile request...";
 
      try
      {
-         var memberSearch = new MemberSearch();
-         var responseBody = await memberSearch.GetResponseAsync(requestBody, selectedUrl.Endpoint,  Legacy);
+         var memberProfile = new MemberProfile();
+         var responseBody = await memberProfile.GetResponseAsync(requestBody, selectedUrl.Endpoint, Legacy);
 
-         StatusTextBlock.Text = "Member Search completed.";
+         StatusTextBlock.Text = "Member Profile completed.";
          ResponseTextBox.Text = FormatXmlIfPossible(responseBody);
          ResponseTab.IsSelected = true;
 
-         var entry = new ApiCallHistory(DateTime.Now, description, requestBody, responseBody, null, TransactionType.MemberSearch, !string.IsNullOrWhiteSpace(responseBody), requestType, selectedUrl.Environment);
+         var entry = new ApiCallHistory(DateTime.Now, description, requestBody, responseBody, null, TransactionType.MemberProfile, !string.IsNullOrWhiteSpace(responseBody), requestType, selectedUrl.Environment);
          await SaveResponseAsync(entry);
 
-         MessageBox.Show("Member Search completed. Check the Response tab for details.", "Member Search Complete", MessageBoxButton.OK, MessageBoxImage.Information);
+         MessageBox.Show("Member Profile completed. Check the Response tab for details.", "Member Profile Complete", MessageBoxButton.OK, MessageBoxImage.Information);
      }
      catch (Exception ex)
      {
-         StatusTextBlock.Text = "Member Search failed.";
+         StatusTextBlock.Text = "Member Profile failed.";
          ResponseTextBox.Text = ex.ToString();
          ResponseTab.IsSelected = true;
 
-         MessageBox.Show("Member Search failed. Check the Response tab for details.", "Member Search Failed", MessageBoxButton.OK, MessageBoxImage.Warning);
+         MessageBox.Show("Member Profile failed. Check the Response tab for details.", "Member Profile Failed", MessageBoxButton.OK, MessageBoxImage.Warning);
      }
      finally
      {
