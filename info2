@@ -1,16 +1,1 @@
-Imports System.Collections.Specialized
-Imports System.Configuration
 
-Private Sub SendToConverterEndpoint2(ByRef xml As String, ByRef response As String)
-
-    Dim hostRouting As NameValueCollection =
-        CType(ConfigurationManager.GetSection("hostRouting"), NameValueCollection)
-
-    Dim endpointUrl As String = hostRouting("MessageConverterURL")
-
-    response = MessageConverterModule.TrySendToEndpoint(endpointUrl, xml)
-
-End Sub
-
-
-===================================
