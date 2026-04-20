@@ -1,1 +1,29 @@
 
+Add a new file
+
+ hostconfig.config
+
+=============================
+
+<?xml version="1.0" encoding="utf-8" ?>
+<configuration>
+  <configSections>
+    <section name="hostConfig" type="System.Configuration.NameValueSectionHandler" />
+  </configSections>
+
+  <startup>
+    <supportedRuntime version="v4.0" sku=".NETFramework,Version=v4.7" />
+  </startup>
+
+  <appSettings file="workstations.config">
+    <add key="sample1" value="sampleValue" />
+  </appSettings>
+
+  <hostConfig configSource="hostconfig.config" />
+</configuration>
+
+=======================
+
+<hostConfig>
+  <add key="hostTranCodes" value="123,456" />
+</hostConfig>
