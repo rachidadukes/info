@@ -1,1 +1,36 @@
 
+Web.config
+
+<configuration>
+  <configSections>
+    <section name="hostRouting"
+             type="System.Configuration.NameValueSectionHandler" />
+  </configSections>
+
+  <hostRouting configSource="hostconfig.config" />
+
+  <appSettings file="appSettings.config">
+  </appSettings>
+</configuration>
+
+=============================================================
+ 
+hostconfig.config
+<hostRouting>
+  <add key="RoutingFlag" value="N" />
+  <add key="HostTranCodes"
+       value="1806,1807,1810,1906,1907,1910,2906,2907,2910,3101,3102,3103,3104,3111,3112,3113,3201,3202,3203,3211,3212,3213,3901,3902" />
+  <add key="MessageConverterURL"
+       value="https://swvdcdenencje01.nfcu.net:8443/EncoreCore/api/MessageConverter/ConvertMessage" />
+</hostRouting>
+
+===========================================
+using System.Collections.Specialized;
+using System.Configuration;
+
+NameValueCollection hostRouting =
+    (NameValueCollection)ConfigurationManager.GetSection("hostRouting");
+
+string routingFlag = hostRouting["RoutingFlag"];
+string hostTranCodes = hostRouting["HostTranCodes"];
+string messageConverterUrl = hostRouting["MessageConverterURL"];
