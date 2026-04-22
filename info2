@@ -1,1 +1,25 @@
+Missing appSettings: MessageConverterURL
 
+comes from this code:
+
+var v = ConfigurationManager.AppSettings[key];
+But we moved MessageConverterURL OUT of appSettings into:
+===================
+
+private static string ReadConfig(string key)
+
+is now reading from the wrong place.
+
+===================
+Replace this:
+private static string ReadConfig(string key)
+{
+    var v = ConfigurationManager.AppSettings[key];
+
+    if (string.IsNullOrWhiteSpace(v))
+    {
+        throw new Exception("Missing appSettings: " + key);
+    }
+
+    return v;
+}
