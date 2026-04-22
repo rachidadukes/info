@@ -1,1 +1,30 @@
 
+private void LoadTransactionTypes()
+{
+    _transactionTypes.Clear();
+
+    if (!File.Exists(_databasePath))
+        return;
+
+    try
+    {
+        using var connection = new SqliteConnection($"Data Source={_databasePath}");
+        connection.Open();
+
+        const string sql = "SELECT Type FROM Response ORDER BY ID";
+        using var command = new SqliteCommand(sql, connection);
+        using var reader = command.ExecuteReader();
+
+        while (reader.Read())
+        {
+            var type = reader.IsDBNull(0) ? string.Empty : reader.GetString(0);
+            _transactionTypes.Add(new TransactionTypeItem(type));
+        }
+
+        TransactionTypeComboBox.ItemsSource = _transactionTypes;
+    }
+    catch (Exception ex)
+    {
+        // StatusTextBlock.Text = $"Warning: could not load transaction types - {ex.Message}";
+    }
+}
