@@ -23,3 +23,27 @@ private static string ReadConfig(string key)
 
     return v;
 }
+
+
+=============
+with this
+using System.Collections.Specialized;
+
+private static string ReadConfig(string key)
+{
+    var section = ConfigurationManager.GetSection("hostRouting") as NameValueCollection;
+
+    if (section == null)
+    {
+        throw new Exception("Missing hostRouting section");
+    }
+
+    var v = section[key];
+
+    if (string.IsNullOrWhiteSpace(v))
+    {
+        throw new Exception("Missing hostRouting key: " + key);
+    }
+
+    return v;
+}
