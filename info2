@@ -1,34 +1,26 @@
-public sealed class ApiTesterDbContext : DbContext
+private void LoadTransactionTypes()
 {
-    public DbSet<ResponseEntity> Responses => Set<ResponseEntity>();
-    // future:
-    // public DbSet<RequestEntity> Requests => Set<RequestEntity>();
-    // public DbSet<UrlEntity> Urls => Set<UrlEntity>();
-
-    protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+    try
     {
-        if (!optionsBuilder.IsConfigured)
+        using var db = new ApiTesterDbContext();
+
+        var types = db.Responses
+            .AsNoTracking()
+            .Where(r => !string.IsNullOrWhiteSpace(r.Type))
+            .Select(r => r.Type!)
+            .Distinct()
+            .OrderBy(t => t)
+            .ToList();
+
+        _transactionTypes.Clear();
+
+        foreach (var type in types)
         {
-            optionsBuilder.UseSqlite($"Data Source={AppDb.DatabasePath}");
+            _transactionTypes.Add(new TransactionTypeItem(type, string.Empty));
         }
     }
-
-    protected override void OnModelCreating(ModelBuilder modelBuilder)
+    catch (Exception ex)
     {
-        modelBuilder.Entity<ResponseEntity>(entity =>
-        {
-            entity.ToTable("Responses");
-            entity.HasKey(x => x.Id);
-
-            entity.Property(x => x.Id).HasColumnName("ID");
-            entity.Property(x => x.Description);
-            entity.Property(x => x.Request);
-            entity.Property(x => x.Response);
-            entity.Property(x => x.DateStamp);
-            entity.Property(x => x.StatusCode);
-            entity.Property(x => x.StatusPhrase);
-            entity.Property(x => x.Environment);
-            entity.Property(x => x.Type);
-        });
+        Console.WriteLine($"Warning: could not load transaction types - {ex.Message}");
     }
 }
