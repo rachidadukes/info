@@ -1,33 +1,30 @@
-
-
-private async Task LoadLatestResponseAsync(RequestItem item)
+private async Task<List<ResponseResult>> LoadLatestResponseAsync(RequestItem item)
 {
     if (!File.Exists(_databasePath))
-        return;
+        return new List<ResponseResult>();
 
     try
     {
         await using var db = new RequestsDbContext(_databasePath);
 
-        var latestResponse = await db.Responses
+        var results = await db.Responses
+            .AsNoTracking()
             .Where(r =>
                 r.Description == item.Description &&
                 r.Type == item.Type &&
                 r.Environment == item.Environment)
             .OrderByDescending(r => r.Id)
-            .FirstOrDefaultAsync();
+            .Select(r => new ResponseResult
+            {
+                Request = r.Request ?? string.Empty,
+                Response = r.Response ?? string.Empty,
+                DateStamp = r.DateStamp ?? string.Empty,
+                StatusCode = r.StatusCode,
+                StatusPhrase = r.StatusPhrase
+            })
+            .ToListAsync();
 
-        if (latestResponse is null)
-            return;
-
-        TimestampLabel.Text = latestResponse.DateStamp ?? string.Empty;
-
-        StatusLabel.Text = latestResponse.StatusCode.HasValue
-            ? $"| {latestResponse.StatusCode} {latestResponse.StatusPhrase}"
-            : string.Empty;
-
-        RequestDetailTextBox.Text = FormatXmlIfPossible(latestResponse.Request ?? string.Empty);
-        ResponseDetailTextBox.Text = FormatXmlIfPossible(latestResponse.Response ?? string.Empty);
+        return results;
     }
     catch (Exception ex)
     {
@@ -36,60 +33,7 @@ private async Task LoadLatestResponseAsync(RequestItem item)
             "Error Loading Response",
             MessageBoxButton.OK,
             MessageBoxImage.Error);
+
+        return new List<ResponseResult>();
     }
-}
-
-================================
-
-using Microsoft.EntityFrameworkCore;
-
-public sealed class RequestsDbContext : DbContext
-{
-    private readonly string _databasePath;
-
-    public RequestsDbContext(string databasePath)
-    {
-        _databasePath = databasePath;
-    }
-
-    public DbSet<ResponseEntity> Responses => Set<ResponseEntity>();
-
-    protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-    {
-        optionsBuilder.UseSqlite($"Data Source={_databasePath}");
-    }
-
-    protected override void OnModelCreating(ModelBuilder modelBuilder)
-    {
-        modelBuilder.Entity<ResponseEntity>(entity =>
-        {
-            entity.ToTable("Responses");
-            entity.HasKey(x => x.Id);
-
-            entity.Property(x => x.Id).HasColumnName("ID");
-            entity.Property(x => x.Description);
-            entity.Property(x => x.Request);
-            entity.Property(x => x.Response);
-            entity.Property(x => x.DateStamp);
-            entity.Property(x => x.StatusCode);
-            entity.Property(x => x.StatusPhrase);
-            entity.Property(x => x.Environment);
-            entity.Property(x => x.Type);
-        });
-    }
-}
-
-=========================================
-
-public sealed class ResponseEntity
-{
-    public long Id { get; set; }
-    public string? Description { get; set; }
-    public string? Request { get; set; }
-    public string? Response { get; set; }
-    public string? DateStamp { get; set; }
-    public long? StatusCode { get; set; }
-    public string? StatusPhrase { get; set; }
-    public string? Environment { get; set; }
-    public string? Type { get; set; }
 }
