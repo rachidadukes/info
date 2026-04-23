@@ -1,5 +1,28 @@
 
+ObservableCollection<ResponseEntity> _requests;
 
-private readonly ObservableCollection<string> _transactionTypes = [];
 
-TransactionTypeComboBox.ItemsSource = _transactionTypes;
+private void RequestsListBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+{
+    var selectedItem = RequestsListBox.SelectedItem as ResponseEntity;
+
+    if (selectedItem == null)
+    {
+        RequestDetailTextBox.Clear();
+        ResponseDetailTextBox.Clear();
+        TimestampLabel.Text = "-- select a response above";
+        StatusLabel.Text = string.Empty;
+        return;
+    }
+
+    // 🔥 Display request/response
+    RequestDetailTextBox.Text = FormatXmlIfPossible(selectedItem.Request ?? string.Empty);
+    ResponseDetailTextBox.Text = FormatXmlIfPossible(selectedItem.Response ?? string.Empty);
+
+    // Optional (you already had this logic before)
+    TimestampLabel.Text = selectedItem.DateStamp ?? string.Empty;
+
+    StatusLabel.Text = selectedItem.StatusCode.HasValue
+        ? $"| {selectedItem.StatusCode} {selectedItem.StatusPhrase}"
+        : string.Empty;
+}
