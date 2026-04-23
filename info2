@@ -1,26 +1,5 @@
-private void LoadTransactionTypes()
-{
-    try
-    {
-        using var db = new ApiTesterDbContext();
 
-        var types = db.Responses
-            .AsNoTracking()
-            .Where(r => !string.IsNullOrWhiteSpace(r.Type))
-            .Select(r => r.Type!)
-            .Distinct()
-            .OrderBy(t => t)
-            .ToList();
 
-        _transactionTypes.Clear();
+private readonly ObservableCollection<string> _transactionTypes = [];
 
-        foreach (var type in types)
-        {
-            _transactionTypes.Add(new TransactionTypeItem(type, string.Empty));
-        }
-    }
-    catch (Exception ex)
-    {
-        Console.WriteLine($"Warning: could not load transaction types - {ex.Message}");
-    }
-}
+TransactionTypeComboBox.ItemsSource = _transactionTypes;
