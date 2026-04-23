@@ -1,17 +1,9 @@
-
-
-
-using var db = new RequestsDbContext();
-
-var data = db.Responses
-    .AsNoTracking()
-    .Where(r => r.Type == type)
-    .OrderByDescending(r => r.Id)
-    .ToList();
-====================================================
-public sealed class RequestsDbContext : DbContext
+public sealed class ApiTesterDbContext : DbContext
 {
     public DbSet<ResponseEntity> Responses => Set<ResponseEntity>();
+    // future:
+    // public DbSet<RequestEntity> Requests => Set<RequestEntity>();
+    // public DbSet<UrlEntity> Urls => Set<UrlEntity>();
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
@@ -38,26 +30,5 @@ public sealed class RequestsDbContext : DbContext
             entity.Property(x => x.Environment);
             entity.Property(x => x.Type);
         });
-    }
-}
-
-=============================
-
-protected override void OnStartup(StartupEventArgs e)
-{
-    base.OnStartup(e);
-
-    AppDb.Initialize();
-}
-=============================
-
-public static class AppDb
-{
-    public static string DatabasePath { get; private set; } = string.Empty;
-
-    public static void Initialize()
-    {
-        DatabasePath = Path.GetFullPath(
-            Path.Combine(AppContext.BaseDirectory, "Requests.sqlite"));
     }
 }
