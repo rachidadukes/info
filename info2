@@ -1,5 +1,26 @@
- var urls = db.Urls
-            .AsNoTracking()
-            .Where(r => r.Type == urlType && !string.IsNullOrWhiteSpace(r.Endpoint))
-            .OrderBy(r => r.ID)
-            .ToList();
+private void SaveResponse(ApiCallHistory entry)
+{
+    try
+    {
+        using var db = new ApiTesterDbContext();
+
+        var response = new ResponseEntity
+        {
+            Description = entry.Description,
+            Request = entry.RequestBody,
+            Response = entry.ResponseBody,
+            DateStamp = entry.Timestamp.ToString("yyyy-MM-dd HH:mm:ss"),
+            StatusCode = entry.StatusCode,
+            StatusPhrase = entry.StatusPhrase,
+            Type = entry.Type,
+            Environment = entry.Environment
+        };
+
+        db.Responses.Add(response);
+        db.SaveChanges();
+    }
+    catch (Exception ex)
+    {
+        StatusTextBlock.Text = $"Warning: could not save to Responses table - {ex.Message}";
+    }
+}
