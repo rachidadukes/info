@@ -1,28 +1,52 @@
-
-ObservableCollection<ResponseEntity> _requests;
-
-
-private void RequestsListBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+modelBuilder.Entity<RequestEntity>(entity =>
 {
-    var selectedItem = RequestsListBox.SelectedItem as ResponseEntity;
+    entity.ToTable("Requests");
+    entity.HasKey(x => x.ID);
 
-    if (selectedItem == null)
-    {
-        RequestDetailTextBox.Clear();
-        ResponseDetailTextBox.Clear();
-        TimestampLabel.Text = "-- select a response above";
-        StatusLabel.Text = string.Empty;
-        return;
-    }
+    entity.Property(x => x.ID).HasColumnName("ID");
+    entity.Property(x => x.Description);
+    entity.Property(x => x.Request);
+    entity.Property(x => x.Type);
+    entity.Property(x => x.KeyFields);
+});
 
-    // 🔥 Display request/response
-    RequestDetailTextBox.Text = FormatXmlIfPossible(selectedItem.Request ?? string.Empty);
-    ResponseDetailTextBox.Text = FormatXmlIfPossible(selectedItem.Response ?? string.Empty);
+modelBuilder.Entity<UrlEntity>(entity =>
+{
+    entity.ToTable("URL");
+    entity.HasKey(x => x.ID);
 
-    // Optional (you already had this logic before)
-    TimestampLabel.Text = selectedItem.DateStamp ?? string.Empty;
+    entity.Property(x => x.ID).HasColumnName("ID");
+    entity.Property(x => x.Endpoint);
+    entity.Property(x => x.Type);
+    entity.Property(x => x.Environment);
+});
 
-    StatusLabel.Text = selectedItem.StatusCode.HasValue
-        ? $"| {selectedItem.StatusCode} {selectedItem.StatusPhrase}"
-        : string.Empty;
+=========================
+
+namespace WpfApiTester.Entities;
+
+public sealed class UrlEntity
+{
+    public long ID { get; set; }
+    public string? Endpoint { get; set; }
+    public string? Type { get; set; }
+    public string? Environment { get; set; }
 }
+
+====================
+
+namespace WpfApiTester.Entities;
+
+public sealed class RequestEntity
+{
+    public long ID { get; set; }
+    public string? Description { get; set; }
+    public string? Request { get; set; }
+    public string? Type { get; set; }
+    public string? KeyFields { get; set; }
+}
+===========================
+
+public DbSet<ResponseEntity> Responses => Set<ResponseEntity>();
+public DbSet<RequestEntity> Requests => Set<RequestEntity>();
+public DbSet<UrlEntity> Urls => Set<UrlEntity>();
