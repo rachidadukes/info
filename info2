@@ -1,52 +1,5 @@
-modelBuilder.Entity<RequestEntity>(entity =>
-{
-    entity.ToTable("Requests");
-    entity.HasKey(x => x.ID);
-
-    entity.Property(x => x.ID).HasColumnName("ID");
-    entity.Property(x => x.Description);
-    entity.Property(x => x.Request);
-    entity.Property(x => x.Type);
-    entity.Property(x => x.KeyFields);
-});
-
-modelBuilder.Entity<UrlEntity>(entity =>
-{
-    entity.ToTable("URL");
-    entity.HasKey(x => x.ID);
-
-    entity.Property(x => x.ID).HasColumnName("ID");
-    entity.Property(x => x.Endpoint);
-    entity.Property(x => x.Type);
-    entity.Property(x => x.Environment);
-});
-
-=========================
-
-namespace WpfApiTester.Entities;
-
-public sealed class UrlEntity
-{
-    public long ID { get; set; }
-    public string? Endpoint { get; set; }
-    public string? Type { get; set; }
-    public string? Environment { get; set; }
-}
-
-====================
-
-namespace WpfApiTester.Entities;
-
-public sealed class RequestEntity
-{
-    public long ID { get; set; }
-    public string? Description { get; set; }
-    public string? Request { get; set; }
-    public string? Type { get; set; }
-    public string? KeyFields { get; set; }
-}
-===========================
-
-public DbSet<ResponseEntity> Responses => Set<ResponseEntity>();
-public DbSet<RequestEntity> Requests => Set<RequestEntity>();
-public DbSet<UrlEntity> Urls => Set<UrlEntity>();
+ var urls = db.Urls
+            .AsNoTracking()
+            .Where(r => r.Type == urlType && !string.IsNullOrWhiteSpace(r.Endpoint))
+            .OrderBy(r => r.ID)
+            .ToList();
