@@ -1,26 +1,17 @@
-private void SaveResponse(ApiCallHistory entry)
+private void RequestsListBox_OnSelectionChanged(object sender, SelectionChangedEventArgs e)
 {
-    try
+    if (RequestsListBox.SelectedItem is not RequestEntity selectedRequest)
     {
-        using var db = new ApiTesterDbContext();
-
-        var response = new ResponseEntity
-        {
-            Description = entry.Description,
-            Request = entry.RequestBody,
-            Response = entry.ResponseBody,
-            DateStamp = entry.Timestamp.ToString("yyyy-MM-dd HH:mm:ss"),
-            StatusCode = entry.StatusCode,
-            StatusPhrase = entry.StatusPhrase,
-            Type = entry.Type,
-            Environment = entry.Environment
-        };
-
-        db.Responses.Add(response);
-        db.SaveChanges();
+        ClearRequestDisplay();
+        return;
     }
-    catch (Exception ex)
-    {
-        StatusTextBlock.Text = $"Warning: could not save to Responses table - {ex.Message}";
-    }
+
+    string requestXml = selectedRequest.Request ?? string.Empty;
+
+    DisplayXml(FormatXmlIfPossible(requestXml));
+
+    MemberSearchButton.IsEnabled = string.Equals(selectedType, TransactionType.MemberSearch, StringComparison.OrdinalIgnoreCase);
+    MemberInfoButton.IsEnabled = string.Equals(selectedType, TransactionType.MemberProfile, StringComparison.OrdinalIgnoreCase);
+    CDdepositButton.IsEnabled = string.Equals(selectedType, TransactionType.CD_Deposit, StringComparison.OrdinalIgnoreCase);
+    IRA_CDdepositButton.IsEnabled = string.Equals(selectedType, TransactionType.IRA_CD_Deposit, StringComparison.OrdinalIgnoreCase);
 }
