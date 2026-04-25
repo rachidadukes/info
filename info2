@@ -1,17 +1,1 @@
-private void RequestsListBox_OnSelectionChanged(object sender, SelectionChangedEventArgs e)
-{
-    if (RequestsListBox.SelectedItem is not RequestEntity selectedRequest)
-    {
-        ClearRequestDisplay();
-        return;
-    }
 
-    string requestXml = selectedRequest.Request ?? string.Empty;
-
-    DisplayXml(FormatXmlIfPossible(requestXml));
-
-    MemberSearchButton.IsEnabled = string.Equals(selectedType, TransactionType.MemberSearch, StringComparison.OrdinalIgnoreCase);
-    MemberInfoButton.IsEnabled = string.Equals(selectedType, TransactionType.MemberProfile, StringComparison.OrdinalIgnoreCase);
-    CDdepositButton.IsEnabled = string.Equals(selectedType, TransactionType.CD_Deposit, StringComparison.OrdinalIgnoreCase);
-    IRA_CDdepositButton.IsEnabled = string.Equals(selectedType, TransactionType.IRA_CD_Deposit, StringComparison.OrdinalIgnoreCase);
-}
