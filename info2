@@ -1,12 +1,2 @@
 
-var request = new HttpRequestMessage(HttpMethod.Post, url);
 
-request.Content = new StringContent(
-    sendMessage ?? "",
-    Encoding.UTF8,
-    "application/xml"
-);
-
-var client = MemberSearchConverterHttpClient.Instance;
-
-var response = await client.SendAsync(request).ConfigureAwait(false);
