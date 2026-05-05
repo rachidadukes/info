@@ -1,9 +1,1 @@
-var (missingFromLeft, missingFromRight) = CompareMissingTags(leftXml, rightXml);
 
-MissingFromLeftTextBox.Text = string.Join(
-    Environment.NewLine,
-    missingFromLeft.Select(x => $"<{x}>"));
-
-MissingFromRightTextBox.Text = string.Join(
-    Environment.NewLine,
-    missingFromRight.Select(x => $"<{x}>"));
