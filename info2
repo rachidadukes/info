@@ -1,33 +1,72 @@
-<Grid RowDefinitions="Auto,*,Auto">
+<Grid Grid.Row="1">
+    <Grid.RowDefinitions>
+        <RowDefinition Height="3*" />
+        <RowDefinition Height="Auto" />
+    </Grid.RowDefinitions>
 
-    <!-- Existing comparison grid -->
-    <Grid Grid.Row="1" ColumnDefinitions="*,10,*">
-        <RichTextBox x:Name="LeftRequestTextBox" Grid.Column="0" />
-        <RichTextBox x:Name="RightRequestTextBox" Grid.Column="2" />
+    <!-- XML comparison boxes -->
+    <Grid Grid.Row="0">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition />
+            <ColumnDefinition Width="10" />
+            <ColumnDefinition />
+        </Grid.ColumnDefinitions>
+
+        <!-- LEFT REQUEST -->
+        <RichTextBox x:Name="LeftRequestTextBox"
+                     Grid.Column="0"
+                     AcceptsReturn="True"
+                     VerticalScrollBarVisibility="Auto"
+                     HorizontalScrollBarVisibility="Auto"
+                     FontFamily="Consolas"
+                     FontSize="13"
+                     IsReadOnly="True"
+                     Margin="0,0,5,0" />
+
+        <!-- RIGHT REQUEST -->
+        <RichTextBox x:Name="RightRequestTextBox"
+                     Grid.Column="2"
+                     AcceptsReturn="True"
+                     VerticalScrollBarVisibility="Auto"
+                     HorizontalScrollBarVisibility="Auto"
+                     FontFamily="Consolas"
+                     FontSize="13"
+                     IsReadOnly="True"
+                     Margin="5,0,0,0" />
     </Grid>
 
-    <!-- NEW: Missing tags panel -->
-    <Grid Grid.Row="2" Margin="0,10,0,0" ColumnDefinitions="*,10,*">
+    <!-- Missing tags display -->
+    <Grid Grid.Row="1" Margin="0,10,0,0">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition />
+            <ColumnDefinition Width="10" />
+            <ColumnDefinition />
+        </Grid.ColumnDefinitions>
 
-        <!-- Missing from LEFT -->
-        <GroupBox Header="Missing From LEFT" Grid.Column="0">
+        <GroupBox Header="Missing From Left"
+                  Grid.Column="0"
+                  Margin="0,0,5,0">
             <TextBox x:Name="MissingFromLeftTextBox"
+                     Height="90"
                      FontFamily="Consolas"
                      FontSize="13"
                      IsReadOnly="True"
                      AcceptsReturn="True"
-                     VerticalScrollBarVisibility="Auto"/>
+                     TextWrapping="Wrap"
+                     VerticalScrollBarVisibility="Auto" />
         </GroupBox>
 
-        <!-- Missing from RIGHT -->
-        <GroupBox Header="Missing From RIGHT" Grid.Column="2">
+        <GroupBox Header="Missing From Right"
+                  Grid.Column="2"
+                  Margin="5,0,0,0">
             <TextBox x:Name="MissingFromRightTextBox"
+                     Height="90"
                      FontFamily="Consolas"
                      FontSize="13"
                      IsReadOnly="True"
                      AcceptsReturn="True"
-                     VerticalScrollBarVisibility="Auto"/>
+                     TextWrapping="Wrap"
+                     VerticalScrollBarVisibility="Auto" />
         </GroupBox>
-
     </Grid>
 </Grid>
