@@ -1,72 +1,42 @@
-<Grid Grid.Row="1">
-    <Grid.RowDefinitions>
-        <RowDefinition Height="3*" />
-        <RowDefinition Height="Auto" />
-    </Grid.RowDefinitions>
+private static (List<string> missingFromLeft, List<string> missingFromRight)
+    CompareMissingTags(string leftXml, string rightXml)
+{
+    var leftTags = GetAllElementNames(leftXml);
+    var rightTags = GetAllElementNames(rightXml);
 
-    <!-- XML comparison boxes -->
-    <Grid Grid.Row="0">
-        <Grid.ColumnDefinitions>
-            <ColumnDefinition />
-            <ColumnDefinition Width="10" />
-            <ColumnDefinition />
-        </Grid.ColumnDefinitions>
+    var missingFromLeft = rightTags
+        .Where(tag => !leftTags.Contains(tag))
+        .OrderBy(tag => tag)
+        .ToList();
 
-        <!-- LEFT REQUEST -->
-        <RichTextBox x:Name="LeftRequestTextBox"
-                     Grid.Column="0"
-                     AcceptsReturn="True"
-                     VerticalScrollBarVisibility="Auto"
-                     HorizontalScrollBarVisibility="Auto"
-                     FontFamily="Consolas"
-                     FontSize="13"
-                     IsReadOnly="True"
-                     Margin="0,0,5,0" />
+    var missingFromRight = leftTags
+        .Where(tag => !rightTags.Contains(tag))
+        .OrderBy(tag => tag)
+        .ToList();
 
-        <!-- RIGHT REQUEST -->
-        <RichTextBox x:Name="RightRequestTextBox"
-                     Grid.Column="2"
-                     AcceptsReturn="True"
-                     VerticalScrollBarVisibility="Auto"
-                     HorizontalScrollBarVisibility="Auto"
-                     FontFamily="Consolas"
-                     FontSize="13"
-                     IsReadOnly="True"
-                     Margin="5,0,0,0" />
-    </Grid>
+    return (missingFromLeft, missingFromRight);
+}
 
-    <!-- Missing tags display -->
-    <Grid Grid.Row="1" Margin="0,10,0,0">
-        <Grid.ColumnDefinitions>
-            <ColumnDefinition />
-            <ColumnDefinition Width="10" />
-            <ColumnDefinition />
-        </Grid.ColumnDefinitions>
+private static HashSet<string> GetAllElementNames(string xml)
+{
+    var result = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
-        <GroupBox Header="Missing From Left"
-                  Grid.Column="0"
-                  Margin="0,0,5,0">
-            <TextBox x:Name="MissingFromLeftTextBox"
-                     Height="90"
-                     FontFamily="Consolas"
-                     FontSize="13"
-                     IsReadOnly="True"
-                     AcceptsReturn="True"
-                     TextWrapping="Wrap"
-                     VerticalScrollBarVisibility="Auto" />
-        </GroupBox>
+    if (string.IsNullOrWhiteSpace(xml))
+        return result;
 
-        <GroupBox Header="Missing From Right"
-                  Grid.Column="2"
-                  Margin="5,0,0,0">
-            <TextBox x:Name="MissingFromRightTextBox"
-                     Height="90"
-                     FontFamily="Consolas"
-                     FontSize="13"
-                     IsReadOnly="True"
-                     AcceptsReturn="True"
-                     TextWrapping="Wrap"
-                     VerticalScrollBarVisibility="Auto" />
-        </GroupBox>
-    </Grid>
-</Grid>
+    try
+    {
+        var doc = System.Xml.Linq.XDocument.Parse(xml);
+
+        foreach (var element in doc.Descendants())
+        {
+            result.Add(element.Name.LocalName);
+        }
+    }
+    catch
+    {
+        // Invalid XML: return empty set.
+    }
+
+    return result;
+}
