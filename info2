@@ -1,42 +1,9 @@
-private static (List<string> missingFromLeft, List<string> missingFromRight)
-    CompareMissingTags(string leftXml, string rightXml)
-{
-    var leftTags = GetAllElementNames(leftXml);
-    var rightTags = GetAllElementNames(rightXml);
+var (missingFromLeft, missingFromRight) = CompareMissingTags(leftXml, rightXml);
 
-    var missingFromLeft = rightTags
-        .Where(tag => !leftTags.Contains(tag))
-        .OrderBy(tag => tag)
-        .ToList();
+MissingFromLeftTextBox.Text = string.Join(
+    Environment.NewLine,
+    missingFromLeft.Select(x => $"<{x}>"));
 
-    var missingFromRight = leftTags
-        .Where(tag => !rightTags.Contains(tag))
-        .OrderBy(tag => tag)
-        .ToList();
-
-    return (missingFromLeft, missingFromRight);
-}
-
-private static HashSet<string> GetAllElementNames(string xml)
-{
-    var result = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-
-    if (string.IsNullOrWhiteSpace(xml))
-        return result;
-
-    try
-    {
-        var doc = System.Xml.Linq.XDocument.Parse(xml);
-
-        foreach (var element in doc.Descendants())
-        {
-            result.Add(element.Name.LocalName);
-        }
-    }
-    catch
-    {
-        // Invalid XML: return empty set.
-    }
-
-    return result;
-}
+MissingFromRightTextBox.Text = string.Join(
+    Environment.NewLine,
+    missingFromRight.Select(x => $"<{x}>"));
