@@ -1,53 +1,212 @@
-private static void WriteElement(XmlReader reader, Paragraph paragraph, int depth)
+using System.IO;
+using System.Text;
+using System.Windows;
+using System.Windows.Documents;
+using System.Windows.Media;
+using System.Xml;
+
+namespace WpfApiTester.Helpers
 {
-    var elementName = reader.Name;
-    var attributes = GetAttributes(reader);
-    var isHighlighted = HighlightedElementNames.Contains(elementName);
-
-    var indent = new string(' ', depth * 4);
-
-    if (reader.IsEmptyElement)
+    public sealed class XmlRichTextFormatter
     {
-        var run = new Run($"{indent}<{elementName}{attributes} />");
-        ApplyTagStyle(run, isHighlighted);
+        private static readonly HashSet<string> HighlightedElementNames =
+            new(StringComparer.OrdinalIgnoreCase)
+            {
+                "CustPermId",
+                "TranCode",
+                "AcctId",
+                "AcctType",
+                "FirstName",
+                "LastName"
+            };
 
-        paragraph.Inlines.Add(run);
-        paragraph.Inlines.Add(new LineBreak());
-        return;
-    }
+        private static readonly Brush HighlightBrush =
+            new SolidColorBrush(Color.FromRgb(0, 0, 180));
 
-    // 🔥 LOOK AHEAD
-    if (reader.Read() && reader.NodeType == XmlNodeType.Text)
-    {
-        var value = reader.Value;
-
-        // Move to end element
-        if (reader.Read() && reader.NodeType == XmlNodeType.EndElement)
+        public FlowDocument FormatXml(string xml)
         {
-            // ✅ INLINE rendering (this removes the extra space issue)
-            var openTag = new Run($"{indent}<{elementName}{attributes}>");
-            var valueRun = new Run(value);
-            var closeTag = new Run($"</{elementName}>");
+            var document = new FlowDocument
+            {
+                PagePadding = new Thickness(5),
+                ColumnWidth = double.PositiveInfinity,
+                TextAlignment = TextAlignment.Left
+            };
 
-            ApplyTagStyle(openTag, isHighlighted);
-            ApplyTagStyle(closeTag, isHighlighted);
+            var paragraph = new Paragraph
+            {
+                Margin = new Thickness(0),
+                LineHeight = 1,
+                TextAlignment = TextAlignment.Left
+            };
 
-            if (isHighlighted)
-                valueRun.FontWeight = FontWeights.Bold;
+            document.Blocks.Add(paragraph);
 
-            paragraph.Inlines.Add(openTag);
-            paragraph.Inlines.Add(valueRun);
-            paragraph.Inlines.Add(closeTag);
+            if (string.IsNullOrWhiteSpace(xml))
+                return document;
+
+            try
+            {
+                var settings = new XmlReaderSettings
+                {
+                    IgnoreWhitespace = true,
+                    IgnoreComments = false,
+                    IgnoreProcessingInstructions = false
+                };
+
+                using var stringReader = new StringReader(xml);
+                using var reader = XmlReader.Create(stringReader, settings);
+
+                WriteXml(reader, paragraph);
+            }
+            catch (XmlException)
+            {
+                AddPlainLine(paragraph, 0, xml);
+            }
+
+            return document;
+        }
+
+        private static void WriteXml(XmlReader reader, Paragraph paragraph)
+        {
+            var depth = 0;
+
+            while (reader.Read())
+            {
+                switch (reader.NodeType)
+                {
+                    case XmlNodeType.Element:
+                        WriteElement(reader, paragraph, depth);
+
+                        if (!reader.IsEmptyElement)
+                            depth++;
+
+                        break;
+
+                    case XmlNodeType.EndElement:
+                        depth--;
+                        WriteClosingTag(reader.Name, paragraph, depth);
+                        break;
+
+                    case XmlNodeType.Text:
+                    case XmlNodeType.CDATA:
+                        AddPlainLine(paragraph, depth, reader.Value.Trim());
+                        break;
+
+                    case XmlNodeType.Comment:
+                        AddPlainLine(paragraph, depth, $"<!--{reader.Value}-->");
+                        break;
+
+                    case XmlNodeType.ProcessingInstruction:
+                        AddPlainLine(paragraph, depth, $"<?{reader.Name} {reader.Value}?>");
+                        break;
+                }
+            }
+        }
+
+        private static void WriteElement(XmlReader reader, Paragraph paragraph, int depth)
+        {
+            var elementName = reader.Name;
+            var attributes = GetAttributes(reader);
+            var isHighlighted = HighlightedElementNames.Contains(elementName);
+
+            if (reader.IsEmptyElement)
+            {
+                WriteSelfClosingTag(paragraph, depth, elementName, attributes, isHighlighted);
+                return;
+            }
+
+            WriteOpeningTag(paragraph, depth, elementName, attributes, isHighlighted);
+        }
+
+        private static void WriteOpeningTag(
+            Paragraph paragraph,
+            int depth,
+            string elementName,
+            string attributes,
+            bool isHighlighted)
+        {
+            var indent = new string(' ', Math.Max(depth, 0) * 4);
+
+            var run = new Run($"{indent}<{elementName}{attributes}>");
+            ApplyTagStyle(run, isHighlighted);
+
+            paragraph.Inlines.Add(run);
             paragraph.Inlines.Add(new LineBreak());
+        }
 
-            return;
+        private static void WriteClosingTag(
+            string elementName,
+            Paragraph paragraph,
+            int depth)
+        {
+            var indent = new string(' ', Math.Max(depth, 0) * 4);
+            var isHighlighted = HighlightedElementNames.Contains(elementName);
+
+            var run = new Run($"{indent}</{elementName}>");
+            ApplyTagStyle(run, isHighlighted);
+
+            paragraph.Inlines.Add(run);
+            paragraph.Inlines.Add(new LineBreak());
+        }
+
+        private static void WriteSelfClosingTag(
+            Paragraph paragraph,
+            int depth,
+            string elementName,
+            string attributes,
+            bool isHighlighted)
+        {
+            var indent = new string(' ', Math.Max(depth, 0) * 4);
+
+            var run = new Run($"{indent}<{elementName}{attributes} />");
+            ApplyTagStyle(run, isHighlighted);
+
+            paragraph.Inlines.Add(run);
+            paragraph.Inlines.Add(new LineBreak());
+        }
+
+        private static string GetAttributes(XmlReader reader)
+        {
+            if (!reader.HasAttributes)
+                return string.Empty;
+
+            var builder = new StringBuilder();
+
+            while (reader.MoveToNextAttribute())
+            {
+                builder.Append(' ');
+                builder.Append(reader.Name);
+                builder.Append("=\"");
+                builder.Append(reader.Value);
+                builder.Append('"');
+            }
+
+            reader.MoveToElement();
+
+            return builder.ToString();
+        }
+
+        private static void AddPlainLine(
+            Paragraph paragraph,
+            int depth,
+            string text)
+        {
+            if (string.IsNullOrWhiteSpace(text))
+                return;
+
+            var indent = new string(' ', Math.Max(depth, 0) * 4);
+
+            paragraph.Inlines.Add(new Run(indent + text));
+            paragraph.Inlines.Add(new LineBreak());
+        }
+
+        private static void ApplyTagStyle(Run run, bool isHighlighted)
+        {
+            if (!isHighlighted)
+                return;
+
+            run.Foreground = HighlightBrush;
+            run.FontWeight = FontWeights.Bold;
         }
     }
-
-    // fallback (complex node)
-    var fallback = new Run($"{indent}<{elementName}{attributes}>");
-    ApplyTagStyle(fallback, isHighlighted);
-
-    paragraph.Inlines.Add(fallback);
-    paragraph.Inlines.Add(new LineBreak());
 }
