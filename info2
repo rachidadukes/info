@@ -1,93 +1,53 @@
-using Microsoft.Data.Sqlite;
-using System.Collections.ObjectModel;
-using System.Windows;
-using System.Windows.Controls;
-
-namespace WpfApiTester
+private static void WriteElement(XmlReader reader, Paragraph paragraph, int depth)
 {
-    public partial class RequestsComparisonControl : UserControl
+    var elementName = reader.Name;
+    var attributes = GetAttributes(reader);
+    var isHighlighted = HighlightedElementNames.Contains(elementName);
+
+    var indent = new string(' ', depth * 4);
+
+    if (reader.IsEmptyElement)
     {
-        private readonly ObservableCollection<RequestListItem> _requests = new();
+        var run = new Run($"{indent}<{elementName}{attributes} />");
+        ApplyTagStyle(run, isHighlighted);
 
-        public RequestsComparisonControl()
+        paragraph.Inlines.Add(run);
+        paragraph.Inlines.Add(new LineBreak());
+        return;
+    }
+
+    // 🔥 LOOK AHEAD
+    if (reader.Read() && reader.NodeType == XmlNodeType.Text)
+    {
+        var value = reader.Value;
+
+        // Move to end element
+        if (reader.Read() && reader.NodeType == XmlNodeType.EndElement)
         {
-            InitializeComponent();
+            // ✅ INLINE rendering (this removes the extra space issue)
+            var openTag = new Run($"{indent}<{elementName}{attributes}>");
+            var valueRun = new Run(value);
+            var closeTag = new Run($"</{elementName}>");
 
-            RequestsListBox.ItemsSource = _requests;
+            ApplyTagStyle(openTag, isHighlighted);
+            ApplyTagStyle(closeTag, isHighlighted);
 
-            Loaded += RequestsComparisonControl_Loaded;
-        }
+            if (isHighlighted)
+                valueRun.FontWeight = FontWeights.Bold;
 
-        private void RequestsComparisonControl_Loaded(object sender, RoutedEventArgs e)
-        {
-            LoadRequests();
-        }
+            paragraph.Inlines.Add(openTag);
+            paragraph.Inlines.Add(valueRun);
+            paragraph.Inlines.Add(closeTag);
+            paragraph.Inlines.Add(new LineBreak());
 
-        private void LoadRequests()
-        {
-            _requests.Clear();
-
-            var dbPath = "Requests.sqlite";
-
-            var connectionString = $"Data Source={dbPath}";
-
-            using var connection = new SqliteConnection(connectionString);
-            connection.Open();
-
-            var sql = """
-                      SELECT 
-                          ID,
-                          Description,
-                          Request,
-                          Type,
-                          KeyFields
-                      FROM Requests
-                      ORDER BY ID DESC;
-                      """;
-
-            using var command = new SqliteCommand(sql, connection);
-            using var reader = command.ExecuteReader();
-
-            while (reader.Read())
-            {
-                _requests.Add(new RequestListItem
-                {
-                    Id = reader.GetInt64(reader.GetOrdinal("ID")),
-                    Description = reader["Description"]?.ToString() ?? string.Empty,
-                    Request = reader["Request"]?.ToString() ?? string.Empty,
-                    Type = reader["Type"]?.ToString() ?? string.Empty,
-                    KeyFields = reader["KeyFields"]?.ToString() ?? string.Empty
-                });
-            }
-        }
-
-        private void RequestsListBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
-        {
-            var selectedItems = RequestsListBox.SelectedItems
-                .Cast<RequestListItem>()
-                .Take(2)
-                .ToList();
-
-            LeftRequestTextBox.Text = selectedItems.Count > 0
-                ? selectedItems[0].Request
-                : string.Empty;
-
-            RightRequestTextBox.Text = selectedItems.Count > 1
-                ? selectedItems[1].Request
-                : string.Empty;
+            return;
         }
     }
 
-    public class RequestListItem
-    {
-        public long Id { get; set; }
+    // fallback (complex node)
+    var fallback = new Run($"{indent}<{elementName}{attributes}>");
+    ApplyTagStyle(fallback, isHighlighted);
 
-        public string Description { get; set; } = string.Empty;
-
-        public string Request { get; set; } = string.Empty;
-
-        public string Type { get; set; } = string.Empty;
-
-        public string KeyFields { get; set; } = string.Empty;
-    }
+    paragraph.Inlines.Add(fallback);
+    paragraph.Inlines.Add(new LineBreak());
 }
