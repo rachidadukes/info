@@ -1,76 +1,93 @@
-<Grid Margin="10">
-    <Grid.RowDefinitions>
-        <RowDefinition Height="2*" />
-        <RowDefinition Height="3*" />
-    </Grid.RowDefinitions>
+using Microsoft.Data.Sqlite;
+using System.Collections.ObjectModel;
+using System.Windows;
+using System.Windows.Controls;
 
-    <!-- ===================== -->
-    <!-- LISTBOX (TOP) -->
-    <!-- ===================== -->
-    <ListBox x:Name="RequestsListBox"
-             Grid.Row="0"
-             SelectionMode="Extended"
-             SelectionChanged="RequestsListBox_SelectionChanged"
-             BorderThickness="1"
-             Margin="0,0,0,10">
+namespace WpfApiTester
+{
+    public partial class RequestsComparisonControl : UserControl
+    {
+        private readonly ObservableCollection<RequestListItem> _requests = new();
 
-        <ListBox.ItemTemplate>
-            <DataTemplate>
-                <Grid>
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="3*" />
-                        <ColumnDefinition Width="1*" />
-                    </Grid.ColumnDefinitions>
+        public RequestsComparisonControl()
+        {
+            InitializeComponent();
 
-                    <!-- Description -->
-                    <TextBlock Text="{Binding Description}"
-                               Grid.Column="0"
-                               VerticalAlignment="Center"
-                               Margin="5,2" />
+            RequestsListBox.ItemsSource = _requests;
 
-                    <!-- ID -->
-                    <TextBlock Text="{Binding Id}"
-                               Grid.Column="1"
-                               VerticalAlignment="Center"
-                               HorizontalAlignment="Right"
-                               Margin="5,2" />
-                </Grid>
-            </DataTemplate>
-        </ListBox.ItemTemplate>
-    </ListBox>
+            Loaded += RequestsComparisonControl_Loaded;
+        }
 
-    <!-- ===================== -->
-    <!-- SELECTED REQUESTS -->
-    <!-- ===================== -->
-    <Grid Grid.Row="1">
-        <Grid.ColumnDefinitions>
-            <ColumnDefinition />
-            <ColumnDefinition Width="10" />
-            <ColumnDefinition />
-        </Grid.ColumnDefinitions>
+        private void RequestsComparisonControl_Loaded(object sender, RoutedEventArgs e)
+        {
+            LoadRequests();
+        }
 
-        <!-- LEFT REQUEST -->
-        <TextBox x:Name="LeftRequestTextBox"
-                 Grid.Column="0"
-                 AcceptsReturn="True"
-                 VerticalScrollBarVisibility="Auto"
-                 HorizontalScrollBarVisibility="Auto"
-                 TextWrapping="Wrap"
-                 FontFamily="Consolas"
-                 FontSize="13"
-                 IsReadOnly="True"
-                 Margin="0,0,5,0"/>
+        private void LoadRequests()
+        {
+            _requests.Clear();
 
-        <!-- RIGHT REQUEST -->
-        <TextBox x:Name="RightRequestTextBox"
-                 Grid.Column="2"
-                 AcceptsReturn="True"
-                 VerticalScrollBarVisibility="Auto"
-                 HorizontalScrollBarVisibility="Auto"
-                 TextWrapping="Wrap"
-                 FontFamily="Consolas"
-                 FontSize="13"
-                 IsReadOnly="True"
-                 Margin="5,0,0,0"/>
-    </Grid>
-</Grid>
+            var dbPath = "Requests.sqlite";
+
+            var connectionString = $"Data Source={dbPath}";
+
+            using var connection = new SqliteConnection(connectionString);
+            connection.Open();
+
+            var sql = """
+                      SELECT 
+                          ID,
+                          Description,
+                          Request,
+                          Type,
+                          KeyFields
+                      FROM Requests
+                      ORDER BY ID DESC;
+                      """;
+
+            using var command = new SqliteCommand(sql, connection);
+            using var reader = command.ExecuteReader();
+
+            while (reader.Read())
+            {
+                _requests.Add(new RequestListItem
+                {
+                    Id = reader.GetInt64(reader.GetOrdinal("ID")),
+                    Description = reader["Description"]?.ToString() ?? string.Empty,
+                    Request = reader["Request"]?.ToString() ?? string.Empty,
+                    Type = reader["Type"]?.ToString() ?? string.Empty,
+                    KeyFields = reader["KeyFields"]?.ToString() ?? string.Empty
+                });
+            }
+        }
+
+        private void RequestsListBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            var selectedItems = RequestsListBox.SelectedItems
+                .Cast<RequestListItem>()
+                .Take(2)
+                .ToList();
+
+            LeftRequestTextBox.Text = selectedItems.Count > 0
+                ? selectedItems[0].Request
+                : string.Empty;
+
+            RightRequestTextBox.Text = selectedItems.Count > 1
+                ? selectedItems[1].Request
+                : string.Empty;
+        }
+    }
+
+    public class RequestListItem
+    {
+        public long Id { get; set; }
+
+        public string Description { get; set; } = string.Empty;
+
+        public string Request { get; set; } = string.Empty;
+
+        public string Type { get; set; } = string.Empty;
+
+        public string KeyFields { get; set; } = string.Empty;
+    }
+}
