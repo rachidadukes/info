@@ -44,8 +44,6 @@ namespace WpfApiTester.Helpers
 
             try
             {
-                using var stringReader = new StringReader(xml);
-
                 var settings = new XmlReaderSettings
                 {
                     IgnoreWhitespace = true,
@@ -53,13 +51,14 @@ namespace WpfApiTester.Helpers
                     IgnoreProcessingInstructions = false
                 };
 
+                using var stringReader = new StringReader(xml);
                 using var reader = XmlReader.Create(stringReader, settings);
 
                 WriteXml(reader, paragraph);
             }
             catch (XmlException)
             {
-                AddLine(paragraph, 0, xml);
+                AddPlainLine(paragraph, 0, xml);
             }
 
             return document;
@@ -74,7 +73,7 @@ namespace WpfApiTester.Helpers
                 switch (reader.NodeType)
                 {
                     case XmlNodeType.Element:
-                        WriteStartElement(reader, paragraph, depth);
+                        WriteElement(reader, paragraph, depth);
 
                         if (!reader.IsEmptyElement)
                             depth++;
@@ -83,40 +82,91 @@ namespace WpfApiTester.Helpers
 
                     case XmlNodeType.EndElement:
                         depth--;
-                        AddLine(paragraph, depth, $"</{reader.Name}>");
+                        WriteClosingTag(reader.Name, paragraph, depth);
                         break;
 
                     case XmlNodeType.Text:
                     case XmlNodeType.CDATA:
-                        AddLine(paragraph, depth, reader.Value);
+                        AddPlainLine(paragraph, depth, reader.Value);
                         break;
 
                     case XmlNodeType.Comment:
-                        AddLine(paragraph, depth, $"<!--{reader.Value}-->");
+                        AddPlainLine(paragraph, depth, $"<!--{reader.Value}-->");
                         break;
 
                     case XmlNodeType.ProcessingInstruction:
-                        AddLine(paragraph, depth, $"<?{reader.Name} {reader.Value}?>");
+                        AddPlainLine(paragraph, depth, $"<?{reader.Name} {reader.Value}?>");
                         break;
                 }
             }
         }
 
-        private static void WriteStartElement(
+        private static void WriteElement(
             XmlReader reader,
             Paragraph paragraph,
             int depth)
         {
             var elementName = reader.Name;
             var attributes = GetAttributes(reader);
+            var isHighlighted = HighlightedElementNames.Contains(elementName);
 
             if (reader.IsEmptyElement)
             {
-                AddXmlLine(paragraph, depth, $"<{elementName}{attributes} />", elementName);
+                WriteSelfClosingTag(paragraph, depth, elementName, attributes, isHighlighted);
                 return;
             }
 
-            AddXmlLine(paragraph, depth, $"<{elementName}{attributes}>", elementName);
+            WriteOpeningTag(paragraph, depth, elementName, attributes, isHighlighted);
+        }
+
+        private static void WriteOpeningTag(
+            Paragraph paragraph,
+            int depth,
+            string elementName,
+            string attributes,
+            bool isHighlighted)
+        {
+            var indent = new string(' ', Math.Max(depth, 0) * 4);
+
+            var run = new Run($"{indent}<{elementName}{attributes}>");
+
+            ApplyTagStyle(run, isHighlighted);
+
+            paragraph.Inlines.Add(run);
+            paragraph.Inlines.Add(new LineBreak());
+        }
+
+        private static void WriteClosingTag(
+            string elementName,
+            Paragraph paragraph,
+            int depth)
+        {
+            var indent = new string(' ', Math.Max(depth, 0) * 4);
+            var isHighlighted = HighlightedElementNames.Contains(elementName);
+
+            var run = new Run($"{indent}</{elementName}>");
+
+            ApplyTagStyle(run, isHighlighted);
+
+            paragraph.Inlines.Add(run);
+            paragraph.Inlines.Add(new LineBreak());
+        }
+
+        private static void WriteSelfClosingTag(
+            Paragraph paragraph,
+            int depth,
+            string elementName,
+            string attributes,
+            bool isHighlighted)
+        {
+            var indent = new string(' ', Math.Max(depth, 0) * 4);
+
+            var run = new Run($"{indent}<{elementName}{attributes} />");
+
+            ApplyTagStyle(run, isHighlighted);
+
+            paragraph.Inlines.Add(run);
+            paragraph.Inlines.Add(new LineBreak());
         }
 
         private static string GetAttributes(XmlReader reader)
@@ -140,37 +190,24 @@ namespace WpfApiTester.Helpers
             return builder.ToString();
         }
 
-        private static void AddXmlLine(
+        private static void AddPlainLine(
             Paragraph paragraph,
             int depth,
-            string text,
-            string elementName)
-        {
-            AddLine(
-                paragraph,
-                depth,
-                text,
-                HighlightedElementNames.Contains(elementName));
-        }
-
-        private static void AddLine(
-            Paragraph paragraph,
-            int depth,
-            string text,
-            bool highlight = false)
+            string text)
         {
             var indent = new string(' ', Math.Max(depth, 0) * 4);
 
-            var run = new Run(indent + text);
-
-            if (highlight)
-            {
-                run.Foreground = HighlightBrush;
-                run.FontWeight = FontWeights.Bold;
-            }
-
-            paragraph.Inlines.Add(run);
+            paragraph.Inlines.Add(new Run(indent + text));
             paragraph.Inlines.Add(new LineBreak());
+        }
+
+        private static void ApplyTagStyle(Run run, bool isHighlighted)
+        {
+            if (!isHighlighted)
+                return;
+
+            run.Foreground = HighlightBrush;
+            run.FontWeight = FontWeights.Bold;
         }
     }
 }
