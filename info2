@@ -1,12 +1,18 @@
 
 
-public string LeftSelectedItemTitle { get; set; }
-public string RightSelectedItemTitle { get; set; }
+   var leftXml = selectedItems.Count > 0
+        ? selectedItems[0].Response
+        : string.Empty;
 
+    LeftSelectedItemTitle = selectedItems.Count > 0
+        ? selectedItems[0].Description?.ToString() ?? string.Empty
+        : string.Empty;
 
+    var rightXml = selectedItems.Count > 1
+        ? selectedItems[1].Response
+        : string.Empty;
 
-LeftSelectedItemTitle =
-    $"{leftItem.TransactionType} - {leftItem.SearchField} - {leftItem.SearchValue} - {leftItem.Environment}";
+    RightSelectedItemTitle = selectedItems.Count > 1
+        ? selectedItems[1].Description?.ToString() ?? string.Empty
+        : string.Empty;
 
-RightSelectedItemTitle =
-    $"{rightItem.TransactionType} - {rightItem.SearchField} - {rightItem.SearchValue} - {rightItem.Environment}";
