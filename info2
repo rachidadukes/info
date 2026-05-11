@@ -1,52 +1,12 @@
 
-<Grid Grid.Row="0">
 
-    <Grid.RowDefinitions>
-        <RowDefinition Height="Auto"/>
-        <RowDefinition Height="*"/>
-    </Grid.RowDefinitions>
+public string LeftSelectedItemTitle { get; set; }
+public string RightSelectedItemTitle { get; set; }
 
-    <Grid.ColumnDefinitions>
-        <ColumnDefinition />
-        <ColumnDefinition Width="10"/>
-        <ColumnDefinition />
-    </Grid.ColumnDefinitions>
 
-    <!-- LEFT LABEL -->
-    <TextBlock Grid.Row="0"
-               Grid.Column="0"
-               Text="{Binding LeftSelectedItemTitle}"
-               FontWeight="Bold"
-               Margin="0,0,0,5"/>
 
-    <!-- RIGHT LABEL -->
-    <TextBlock Grid.Row="0"
-               Grid.Column="2"
-               Text="{Binding RightSelectedItemTitle}"
-               FontWeight="Bold"
-               Margin="0,0,0,5"/>
+LeftSelectedItemTitle =
+    $"{leftItem.TransactionType} - {leftItem.SearchField} - {leftItem.SearchValue} - {leftItem.Environment}";
 
-    <!-- LEFT RESPONSE -->
-    <RichTextBox x:Name="LeftResponseTextBox"
-                 Grid.Row="1"
-                 Grid.Column="0"
-                 AcceptsReturn="True"
-                 VerticalScrollBarVisibility="Auto"
-                 HorizontalScrollBarVisibility="Auto"
-                 FontFamily="Consolas"
-                 FontSize="13"
-                 IsReadOnly="True"
-                 Margin="0,0,5,0"/>
-
-    <!-- RIGHT RESPONSE -->
-    <RichTextBox x:Name="RightResponseTextBox"
-                 Grid.Row="1"
-                 Grid.Column="2"
-                 AcceptsReturn="True"
-                 VerticalScrollBarVisibility="Auto"
-                 HorizontalScrollBarVisibility="Auto"
-                 FontFamily="Consolas"
-                 FontSize="13"
-                 IsReadOnly="True"
-                 Margin="5,0,0,0"/>
-</Grid>
+RightSelectedItemTitle =
+    $"{rightItem.TransactionType} - {rightItem.SearchField} - {rightItem.SearchValue} - {rightItem.Environment}";
