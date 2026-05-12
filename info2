@@ -1,1 +1,116 @@
 
+string tag = trimmed.Substring(tagStart, tagEnd - tagStart + 1);
+
+// Remove < >
+string innerTag = tag
+    .Replace("<", "")
+    .Replace(">", "")
+    .Trim();
+
+bool isClosingTag = innerTag.StartsWith("/");
+
+if (isClosingTag)
+{
+    innerTag = innerTag.Substring(1);
+}
+
+// Split tag name from attributes
+string[] parts = innerTag.Split(
+    new[] { ' ' },
+    2,
+    StringSplitOptions.RemoveEmptyEntries);
+
+string tagName = parts[0];
+
+string attributes = parts.Length > 1
+    ? parts[1]
+    : string.Empty;
+
+// Opening <
+paragraph.Inlines.Add(new Run("<")
+{
+    Foreground = Brushes.Black,
+    FontWeight = FontWeights.Bold
+});
+
+// /
+if (isClosingTag)
+{
+    paragraph.Inlines.Add(new Run("/")
+    {
+        Foreground = Brushes.Black,
+        FontWeight = FontWeights.Bold
+    });
+}
+
+// TAG NAME COLORING
+Brush tagBrush = Brushes.Black;
+
+if (_blueTags.Contains(tagName))
+{
+    tagBrush = Brushes.Blue;
+}
+else if (_redTags.Contains(tagName))
+{
+    tagBrush = Brushes.Red;
+}
+else if (_purpleTags.Contains(tagName))
+{
+    tagBrush = Brushes.Purple;
+}
+
+paragraph.Inlines.Add(new Run(tagName)
+{
+    Foreground = tagBrush,
+    FontWeight = FontWeights.Bold
+});
+
+// ATTRIBUTES
+if (!string.IsNullOrWhiteSpace(attributes))
+{
+    paragraph.Inlines.Add(new Run(" "));
+
+    string[] attrParts = attributes.Split(' ');
+
+    foreach (string attr in attrParts)
+    {
+        if (attr.StartsWith("xmlns=", StringComparison.OrdinalIgnoreCase))
+        {
+            int equalsIndex = attr.IndexOf('=');
+
+            string attrName = attr.Substring(0, equalsIndex + 1);
+            string attrValue = attr.Substring(equalsIndex + 1);
+
+            // xmlns=
+            paragraph.Inlines.Add(new Run(attrName)
+            {
+                Foreground = Brushes.Black,
+                FontWeight = FontWeights.Bold
+            });
+
+            // "http://..."
+            paragraph.Inlines.Add(new Run(attrValue)
+            {
+                Foreground = Brushes.Green,
+                FontWeight = FontWeights.Bold
+            });
+        }
+        else
+        {
+            paragraph.Inlines.Add(new Run(attr)
+            {
+                Foreground = Brushes.DarkCyan,
+                FontWeight = FontWeights.Normal
+            });
+        }
+
+        paragraph.Inlines.Add(new Run(" "));
+    }
+}
+
+// Closing >
+paragraph.Inlines.Add(new Run(">")
+{
+    Foreground = Brushes.Black,
+    FontWeight = FontWeights.Bold
+});
