@@ -1,1 +1,42 @@
 
+using System.Xml.Linq;
+
+public static class XmlNamespaceHelper
+{
+    public static string AddMissingNamespaces(string xml)
+    {
+        XDocument doc = XDocument.Parse(xml);
+
+        const string namespaceValue =
+            "http://schemas.navyfederal.org/2010/04/NFBranchExService";
+
+        // Tags that need the xmlns attribute
+        string[] targetTags =
+        {
+            "MsgRqHdr",
+            "SearchMemberInfo"
+        };
+
+        foreach (string tagName in targetTags)
+        {
+            var elements = doc.Descendants(tagName);
+
+            foreach (var element in elements)
+            {
+                // Add xmlns only if missing
+                if (element.Attribute("xmlns") == null)
+                {
+                    element.SetAttributeValue("xmlns", namespaceValue);
+                }
+            }
+        }
+
+==========================
+
+string updatedXml = XmlNamespaceHelper.AddMissingNamespaces(originalXml);
+
+Console.WriteLine(updatedXml);
+
+        return doc.ToString();
+    }
+}
