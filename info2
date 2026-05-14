@@ -1,14 +1,1 @@
-using System.Text.RegularExpressions;
 
-public static string? GetTranCodeValue(string xml)
-{
-    if (string.IsNullOrWhiteSpace(xml))
-        return null;
-
-    var match = Regex.Match(
-        xml,
-        @"<TranCode>(.*?)</TranCode>",
-        RegexOptions.IgnoreCase | RegexOptions.Singleline);
-
-    return match.Success ? match.Groups[1].Value.Trim() : null;
-}
