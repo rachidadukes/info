@@ -1,42 +1,120 @@
 
-using System.Xml.Linq;
+using System.Text.RegularExpressions;
+using System.Windows.Controls;
+using System.Windows.Documents;
+using System.Windows.Media;
 
-public static class XmlNamespaceHelper
+namespace YourProject.Helpers
 {
-    public static string AddMissingNamespaces(string xml)
+    public static class RichTextBoxHighlighter
     {
-        XDocument doc = XDocument.Parse(xml);
-
-        const string namespaceValue =
-            "http://schemas.navyfederal.org/2010/04/NFBranchExService";
-
-        // Tags that need the xmlns attribute
-        string[] targetTags =
+        /// <summary>
+        /// Highlights text located between XML tags.
+        /// Example:
+        /// <TranCode>H001</TranCode>
+        /// will highlight H001 only.
+        /// </summary>
+        public static void HighlightTextBetweenTags(
+            RichTextBox richTextBox,
+            string startTag,
+            string endTag,
+            Brush foregroundBrush,
+            bool isBold = false)
         {
-            "MsgRqHdr",
-            "SearchMemberInfo"
-        };
+            if (richTextBox == null)
+                return;
 
-        foreach (string tagName in targetTags)
-        {
-            var elements = doc.Descendants(tagName);
+            TextRange documentRange = new TextRange(
+                richTextBox.Document.ContentStart,
+                richTextBox.Document.ContentEnd);
 
-            foreach (var element in elements)
+            string text = documentRange.Text;
+
+            string pattern =
+                $@"(?<={Regex.Escape(startTag)}).*?(?={Regex.Escape(endTag)})";
+
+            MatchCollection matches = Regex.Matches(
+                text,
+                pattern,
+                RegexOptions.Singleline);
+
+            foreach (Match match in matches)
             {
-                // Add xmlns only if missing
-                if (element.Attribute("xmlns") == null)
+                TextPointer start = GetTextPositionAtOffset(
+                    richTextBox.Document.ContentStart,
+                    match.Index);
+
+                TextPointer end = GetTextPositionAtOffset(
+                    start,
+                    match.Length);
+
+                if (start == null || end == null)
+                    continue;
+
+                TextRange range = new TextRange(start, end);
+
+                range.ApplyPropertyValue(
+                    TextElement.ForegroundProperty,
+                    foregroundBrush);
+
+                if (isBold)
                 {
-                    element.SetAttributeValue("xmlns", namespaceValue);
+                    range.ApplyPropertyValue(
+                        TextElement.FontWeightProperty,
+                        FontWeights.Bold);
                 }
             }
         }
 
-==========================
+        private static TextPointer GetTextPositionAtOffset(
+            TextPointer start,
+            int characterCount)
+        {
+            TextPointer current = start;
+            int cnt = 0;
 
-string updatedXml = XmlNamespaceHelper.AddMissingNamespaces(originalXml);
+            while (current != null)
+            {
+                if (current.GetPointerContext(LogicalDirection.Forward)
+                    == TextPointerContext.Text)
+                {
+                    string textRun =
+                        current.GetTextInRun(LogicalDirection.Forward);
 
-Console.WriteLine(updatedXml);
+                    if (cnt + textRun.Length >= characterCount)
+                    {
+                        return current.GetPositionAtOffset(
+                            characterCount - cnt);
+                    }
 
-        return doc.ToString();
+                    cnt += textRun.Length;
+                }
+
+                TextPointer next =
+                    current.GetNextContextPosition(
+                        LogicalDirection.Forward);
+
+                if (next == null)
+                    return current;
+
+                current = next;
+            }
+
+            return current;
+        }
     }
 }
+
+
+
+
+
+
+
+======================================
+RichTextBoxHighlighter.HighlightTextBetweenTags(
+    MyRichTextBox,
+    "<TranCode>",
+    "</TranCode>",
+    Brushes.Green,
+    true);
