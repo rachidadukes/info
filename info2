@@ -1,52 +1,38 @@
-private void HighlightXmlValue(
-    FlowDocument document,
-    string tagName,
-    Brush brush,
-    bool bold)
+private string HighlightTranCodeValueInXml(string xml)
 {
-    string startTag = $"<{tagName}>";
-    string endTag = $"</{tagName}>";
+    if (string.IsNullOrWhiteSpace(xml))
+        return xml;
 
-    foreach (Paragraph paragraph in document.Blocks.OfType<Paragraph>())
-    {
-        Run[] runs = paragraph.Inlines.OfType<Run>().ToArray();
+    return xml.Replace(
+        "<TranCode>",
+        "<TranCode><HighlightedTranCode>")
+        .Replace(
+        "</TranCode>",
+        "</HighlightedTranCode></TranCode>");
+}
 
-        foreach (Run run in runs)
-        {
-            string text = run.Text;
 
-            int startIndex = text.IndexOf(startTag, StringComparison.Ordinal);
-            int endIndex = text.IndexOf(endTag, StringComparison.Ordinal);
+==========================
 
-            if (startIndex < 0 || endIndex < 0)
-                continue;
+private void DisplayRequestXml(string xml)
+{
+    string updatedXml = HighlightTranCodeValueInXml(xml);
 
-            int valueStartIndex = startIndex + startTag.Length;
-            string before = text.Substring(0, valueStartIndex);
-            string value = text.Substring(valueStartIndex, endIndex - valueStartIndex);
-            string after = text.Substring(endIndex);
+    SelectedRequestRichTextBox.Document =
+        _xmlFormatter.FormatXml(
+            XmlRichTextFormatter.FormatXmlIfPossible(updatedXml));
+}
 
-            paragraph.Inlines.Clear();
 
-            paragraph.Inlines.Add(new Run(before)
-            {
-                Foreground = run.Foreground,
-                FontWeight = run.FontWeight
-            });
+========================
 
-            paragraph.Inlines.Add(new Run(value)
-            {
-                Foreground = brush,
-                FontWeight = bold ? FontWeights.Bold : run.FontWeight
-            });
+private void DisplayRequestXml(string xml)
+{
+    string updatedXml = xml.Replace(
+        "M001",
+        "M001_TEST");
 
-            paragraph.Inlines.Add(new Run(after)
-            {
-                Foreground = run.Foreground,
-                FontWeight = run.FontWeight
-            });
-
-            return;
-        }
-    }
+    SelectedRequestRichTextBox.Document =
+        _xmlFormatter.FormatXml(
+            XmlRichTextFormatter.FormatXmlIfPossible(updatedXml));
 }
