@@ -1,120 +1,73 @@
-using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Documents;
 using System.Windows.Media;
 
-namespace YourProject.Helpers
+public static class RichTextBoxHighlighter
 {
-    public static class RichTextBoxHighlighter
+    public static void HighlightTextBetweenTags(
+        RichTextBox richTextBox,
+        string startTag,
+        string endTag,
+        Brush brush,
+        bool bold = false)
     {
-        public static void HighlightTextBetweenTags(
-            RichTextBox richTextBox,
-            string startTag,
-            string endTag,
-            Brush brush,
-            bool bold = false)
+        if (richTextBox?.Document == null)
+            return;
+
+        TextPointer searchStart = richTextBox.Document.ContentStart;
+
+        while (searchStart != null)
         {
-            if (richTextBox == null)
-                return;
+            TextRange startTagRange = FindText(searchStart, richTextBox.Document.ContentEnd, startTag);
 
-            TextRange fullRange = new TextRange(
-                richTextBox.Document.ContentStart,
-                richTextBox.Document.ContentEnd);
+            if (startTagRange == null)
+                break;
 
-            string fullText = fullRange.Text;
+            TextRange endTagRange = FindText(startTagRange.End, richTextBox.Document.ContentEnd, endTag);
 
-            int currentIndex = 0;
+            if (endTagRange == null)
+                break;
 
-            while (true)
+            TextRange valueRange = new TextRange(startTagRange.End, endTagRange.Start);
+
+            valueRange.ApplyPropertyValue(TextElement.ForegroundProperty, brush);
+
+            if (bold)
             {
-                int startTagIndex = fullText.IndexOf(
-                    startTag,
-                    currentIndex);
-
-                if (startTagIndex < 0)
-                    break;
-
-                int contentStartIndex =
-                    startTagIndex + startTag.Length;
-
-                int endTagIndex = fullText.IndexOf(
-                    endTag,
-                    contentStartIndex);
-
-                if (endTagIndex < 0)
-                    break;
-
-                int contentLength =
-                    endTagIndex - contentStartIndex;
-
-                TextPointer startPointer =
-                    GetTextPointerAtOffset(
-                        richTextBox.Document.ContentStart,
-                        contentStartIndex);
-
-                TextPointer endPointer =
-                    GetTextPointerAtOffset(
-                        richTextBox.Document.ContentStart,
-                        contentStartIndex + contentLength);
-
-                if (startPointer != null && endPointer != null)
-                {
-                    TextRange textRange =
-                        new TextRange(startPointer, endPointer);
-
-                    textRange.ApplyPropertyValue(
-                        TextElement.ForegroundProperty,
-                        brush);
-
-                    if (bold)
-                    {
-                        textRange.ApplyPropertyValue(
-                            TextElement.FontWeightProperty,
-                            FontWeights.Bold);
-                    }
-                }
-
-                currentIndex = endTagIndex + endTag.Length;
-            }
-        }
-
-        private static TextPointer GetTextPointerAtOffset(
-            TextPointer start,
-            int offset)
-        {
-            TextPointer current = start;
-            int count = 0;
-
-            while (current != null)
-            {
-                if (current.GetPointerContext(
-                    LogicalDirection.Forward)
-                    == TextPointerContext.Text)
-                {
-                    string textRun =
-                        current.GetTextInRun(
-                            LogicalDirection.Forward);
-
-                    if (count + textRun.Length >= offset)
-                    {
-                        return current.GetPositionAtOffset(
-                            offset - count);
-                    }
-
-                    count += textRun.Length;
-                }
-
-                TextPointer next =
-                    current.GetNextContextPosition(
-                        LogicalDirection.Forward);
-
-                if (next == null)
-                    break;
-
-                current = next;
+                valueRange.ApplyPropertyValue(TextElement.FontWeightProperty, FontWeights.Bold);
             }
 
-            return current;
+            searchStart = endTagRange.End;
         }
+    }
+
+    private static TextRange FindText(
+        TextPointer start,
+        TextPointer end,
+        string textToFind)
+    {
+        TextPointer current = start;
+
+        while (current != null && current.CompareTo(end) < 0)
+        {
+            if (current.GetPointerContext(LogicalDirection.Forward) == TextPointerContext.Text)
+            {
+                string textRun = current.GetTextInRun(LogicalDirection.Forward);
+
+                int index = textRun.IndexOf(textToFind, StringComparison.Ordinal);
+
+                if (index >= 0)
+                {
+                    TextPointer matchStart = current.GetPositionAtOffset(index);
+                    TextPointer matchEnd = matchStart.GetPositionAtOffset(textToFind.Length);
+
+                    return new TextRange(matchStart, matchEnd);
+                }
+            }
+
+            current = current.GetNextContextPosition(LogicalDirection.Forward);
+        }
+
+        return null;
     }
 }
