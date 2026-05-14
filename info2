@@ -1,5 +1,4 @@
-
-using System.Text.RegularExpressions;
+using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Documents;
 using System.Windows.Media;
@@ -8,86 +7,101 @@ namespace YourProject.Helpers
 {
     public static class RichTextBoxHighlighter
     {
-        /// <summary>
-        /// Highlights text located between XML tags.
-        /// Example:
-        /// <TranCode>H001</TranCode>
-        /// will highlight H001 only.
-        /// </summary>
         public static void HighlightTextBetweenTags(
             RichTextBox richTextBox,
             string startTag,
             string endTag,
-            Brush foregroundBrush,
-            bool isBold = false)
+            Brush brush,
+            bool bold = false)
         {
             if (richTextBox == null)
                 return;
 
-            TextRange documentRange = new TextRange(
+            TextRange fullRange = new TextRange(
                 richTextBox.Document.ContentStart,
                 richTextBox.Document.ContentEnd);
 
-            string text = documentRange.Text;
+            string fullText = fullRange.Text;
 
-            string pattern =
-                $@"(?<={Regex.Escape(startTag)}).*?(?={Regex.Escape(endTag)})";
+            int currentIndex = 0;
 
-            MatchCollection matches = Regex.Matches(
-                text,
-                pattern,
-                RegexOptions.Singleline);
-
-            foreach (Match match in matches)
+            while (true)
             {
-                TextPointer start = GetTextPositionAtOffset(
-                    richTextBox.Document.ContentStart,
-                    match.Index);
+                int startTagIndex = fullText.IndexOf(
+                    startTag,
+                    currentIndex);
 
-                TextPointer end = GetTextPositionAtOffset(
-                    start,
-                    match.Length);
+                if (startTagIndex < 0)
+                    break;
 
-                if (start == null || end == null)
-                    continue;
+                int contentStartIndex =
+                    startTagIndex + startTag.Length;
 
-                TextRange range = new TextRange(start, end);
+                int endTagIndex = fullText.IndexOf(
+                    endTag,
+                    contentStartIndex);
 
-                range.ApplyPropertyValue(
-                    TextElement.ForegroundProperty,
-                    foregroundBrush);
+                if (endTagIndex < 0)
+                    break;
 
-                if (isBold)
+                int contentLength =
+                    endTagIndex - contentStartIndex;
+
+                TextPointer startPointer =
+                    GetTextPointerAtOffset(
+                        richTextBox.Document.ContentStart,
+                        contentStartIndex);
+
+                TextPointer endPointer =
+                    GetTextPointerAtOffset(
+                        richTextBox.Document.ContentStart,
+                        contentStartIndex + contentLength);
+
+                if (startPointer != null && endPointer != null)
                 {
-                    range.ApplyPropertyValue(
-                        TextElement.FontWeightProperty,
-                        FontWeights.Bold);
+                    TextRange textRange =
+                        new TextRange(startPointer, endPointer);
+
+                    textRange.ApplyPropertyValue(
+                        TextElement.ForegroundProperty,
+                        brush);
+
+                    if (bold)
+                    {
+                        textRange.ApplyPropertyValue(
+                            TextElement.FontWeightProperty,
+                            FontWeights.Bold);
+                    }
                 }
+
+                currentIndex = endTagIndex + endTag.Length;
             }
         }
 
-        private static TextPointer GetTextPositionAtOffset(
+        private static TextPointer GetTextPointerAtOffset(
             TextPointer start,
-            int characterCount)
+            int offset)
         {
             TextPointer current = start;
-            int cnt = 0;
+            int count = 0;
 
             while (current != null)
             {
-                if (current.GetPointerContext(LogicalDirection.Forward)
+                if (current.GetPointerContext(
+                    LogicalDirection.Forward)
                     == TextPointerContext.Text)
                 {
                     string textRun =
-                        current.GetTextInRun(LogicalDirection.Forward);
+                        current.GetTextInRun(
+                            LogicalDirection.Forward);
 
-                    if (cnt + textRun.Length >= characterCount)
+                    if (count + textRun.Length >= offset)
                     {
                         return current.GetPositionAtOffset(
-                            characterCount - cnt);
+                            offset - count);
                     }
 
-                    cnt += textRun.Length;
+                    count += textRun.Length;
                 }
 
                 TextPointer next =
@@ -95,7 +109,7 @@ namespace YourProject.Helpers
                         LogicalDirection.Forward);
 
                 if (next == null)
-                    return current;
+                    break;
 
                 current = next;
             }
@@ -104,17 +118,3 @@ namespace YourProject.Helpers
         }
     }
 }
-
-
-
-
-
-
-
-======================================
-RichTextBoxHighlighter.HighlightTextBetweenTags(
-    MyRichTextBox,
-    "<TranCode>",
-    "</TranCode>",
-    Brushes.Green,
-    true);
