@@ -1,38 +1,14 @@
-private string HighlightTranCodeValueInXml(string xml)
+using System.Text.RegularExpressions;
+
+public static string? GetTranCodeElement(string xml)
 {
     if (string.IsNullOrWhiteSpace(xml))
-        return xml;
+        return null;
 
-    return xml.Replace(
-        "<TranCode>",
-        "<TranCode><HighlightedTranCode>")
-        .Replace(
-        "</TranCode>",
-        "</HighlightedTranCode></TranCode>");
-}
+    var match = Regex.Match(
+        xml,
+        @"<TranCode>.*?</TranCode>",
+        RegexOptions.IgnoreCase | RegexOptions.Singleline);
 
-
-==========================
-
-private void DisplayRequestXml(string xml)
-{
-    string updatedXml = HighlightTranCodeValueInXml(xml);
-
-    SelectedRequestRichTextBox.Document =
-        _xmlFormatter.FormatXml(
-            XmlRichTextFormatter.FormatXmlIfPossible(updatedXml));
-}
-
-
-========================
-
-private void DisplayRequestXml(string xml)
-{
-    string updatedXml = xml.Replace(
-        "M001",
-        "M001_TEST");
-
-    SelectedRequestRichTextBox.Document =
-        _xmlFormatter.FormatXml(
-            XmlRichTextFormatter.FormatXmlIfPossible(updatedXml));
+    return match.Success ? match.Value : null;
 }
