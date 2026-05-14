@@ -1,13 +1,52 @@
-public FlowDocument FormatXmlWithTranCodeHighlight(string xml)
+private void HighlightXmlValue(
+    FlowDocument document,
+    string tagName,
+    Brush brush,
+    bool bold)
 {
-    FlowDocument document = FormatXml(
-        XmlRichTextFormatter.FormatXmlIfPossible(xml));
+    string startTag = $"<{tagName}>";
+    string endTag = $"</{tagName}>";
 
-    HighlightXmlValue(
-        document,
-        "TranCode",
-        Brushes.Green,
-        true);
+    foreach (Paragraph paragraph in document.Blocks.OfType<Paragraph>())
+    {
+        Run[] runs = paragraph.Inlines.OfType<Run>().ToArray();
 
-    return document;
+        foreach (Run run in runs)
+        {
+            string text = run.Text;
+
+            int startIndex = text.IndexOf(startTag, StringComparison.Ordinal);
+            int endIndex = text.IndexOf(endTag, StringComparison.Ordinal);
+
+            if (startIndex < 0 || endIndex < 0)
+                continue;
+
+            int valueStartIndex = startIndex + startTag.Length;
+            string before = text.Substring(0, valueStartIndex);
+            string value = text.Substring(valueStartIndex, endIndex - valueStartIndex);
+            string after = text.Substring(endIndex);
+
+            paragraph.Inlines.Clear();
+
+            paragraph.Inlines.Add(new Run(before)
+            {
+                Foreground = run.Foreground,
+                FontWeight = run.FontWeight
+            });
+
+            paragraph.Inlines.Add(new Run(value)
+            {
+                Foreground = brush,
+                FontWeight = bold ? FontWeights.Bold : run.FontWeight
+            });
+
+            paragraph.Inlines.Add(new Run(after)
+            {
+                Foreground = run.Foreground,
+                FontWeight = run.FontWeight
+            });
+
+            return;
+        }
+    }
 }
