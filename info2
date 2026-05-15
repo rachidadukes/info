@@ -1,6 +1,6 @@
-if (selectedType == TypeValues.Type.MemberSearch)
-{
-    requestsQuery = requestsQuery
-        .Where(r =>
-            r.MemberSearchType == _selectedMemberSearchType);
-}
+var normalizedSelectedType = selectedType?.Trim();
+
+var requestsQuery = result
+    .Where(r =>
+        !string.IsNullOrWhiteSpace(r.Type) &&
+        r.Type.Trim() == normalizedSelectedType);
