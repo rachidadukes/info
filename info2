@@ -1,6 +1,8 @@
-var normalizedSelectedType = selectedType?.Trim();
-
-var requestsQuery = result
-    .Where(r =>
-        !string.IsNullOrWhiteSpace(r.Type) &&
-        r.Type.Trim() == normalizedSelectedType);
+builder.Services.AddHttpClient<ILookupApi, LookupApi>(client =>
+{
+    client.BaseAddress = new Uri("https://localhost:7185/");
+})
+.ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler
+{
+    UseProxy = false
+});
