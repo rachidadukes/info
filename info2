@@ -1,28 +1,24 @@
-  <StackPanel x:Name="MemberSearchOptionsPanel"
-                Orientation="Horizontal"
-                VerticalAlignment="Center"
-                Visibility="Collapsed">
+ <RadioButton x:Name="AccessNbrRadioButton"
+                 Content="Access Nbr"
+                 GroupName="MemberSearchOptions"
+                 Margin="0,0,15,0"
+                 IsChecked="True" />
 
-====================================
+    <RadioButton x:Name="LastNameRadioButton"
+                 Content="Last Name"
+                 GroupName="MemberSearchOptions"
+                 Margin="0,0,15,0" />
 
-private void TransactionTypeComboBox_SelectionChanged(
-    object sender,
-    SelectionChangedEventArgs e)
-{
-    if (TransactionTypeComboBox.SelectedItem == null)
-    {
-        MemberSearchOptionsPanel.Visibility = Visibility.Collapsed;
-        return;
-    }
+    <RadioButton x:Name="SSNRadioButton"
+                 Content="SSN"
+                 GroupName="MemberSearchOptions"
+                 Margin="0,0,15,0" />
 
-    string selectedTransaction =
-        TransactionTypeComboBox.SelectedItem.ToString();
+    <RadioButton x:Name="AcctNbrRadioButton"
+                 Content="Acct Nbr"
+                 GroupName="MemberSearchOptions"
+                 Margin="0,0,15,0" />
 
-    bool isMemberSearch =
-        selectedTransaction.Contains("MemberSearch");
-
-    MemberSearchOptionsPanel.Visibility =
-        isMemberSearch
-            ? Visibility.Visible
-            : Visibility.Collapsed;
-}
+    <RadioButton x:Name="BusinessRadioButton"
+                 Content="Business"
+                 GroupName="MemberSearchOptions" />
