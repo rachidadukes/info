@@ -1,36 +1,6 @@
-private string _selectedMemberSearchType =
-    TypeValues.MemberSearchType.MemberSearchAccessNumber;
-
-private void MemberSearchTypeRadioButton_Checked(
-    object sender,
-    RoutedEventArgs e)
+if (selectedType == TypeValues.Type.MemberSearch)
 {
-    if (sender == AccessNbrRadioButton)
-    {
-        _selectedMemberSearchType =
-            TypeValues.MemberSearchType.MemberSearchAccessNumber;
-    }
-    else if (sender == LastNameRadioButton)
-    {
-        _selectedMemberSearchType =
-            TypeValues.MemberSearchType.MemberSearchLastName;
-    }
-    else if (sender == SSNRadioButton)
-    {
-        _selectedMemberSearchType =
-            TypeValues.MemberSearchType.MemberSearchSSN;
-    }
-    else if (sender == AcctNbrRadioButton)
-    {
-        _selectedMemberSearchType =
-            TypeValues.MemberSearchType.MemberSearchAccount;
-    }
-    else if (sender == BusinessRadioButton)
-    {
-        _selectedMemberSearchType =
-            TypeValues.MemberSearchType.MemberSearchBusiness;
-    }
-
-    LoadRequests();
+    requestsQuery = requestsQuery
+        .Where(r =>
+            r.MemberSearchType == _selectedMemberSearchType);
 }
-
