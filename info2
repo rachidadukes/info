@@ -1,7 +1,19 @@
-if (selectedType == TypeValues.Type.MemberSearch)
+private string GetSelectedMemberSearchType()
 {
-    string selectedMemberSearchType = GetSelectedMemberSearchType();
+    if (AccessNbrRadioButton.IsChecked == true)
+        return TypeValues.MemberSearchType.MemberSearchAccessNumber;
 
-    requestsQuery = requestsQuery
-        .Where(r => r.MemberSearchType == selectedMemberSearchType);
+    if (LastNameRadioButton.IsChecked == true)
+        return TypeValues.MemberSearchType.MemberSearchLastName;
+
+    if (SSNRadioButton.IsChecked == true)
+        return TypeValues.MemberSearchType.MemberSearchSSN;
+
+    if (AcctNbrRadioButton.IsChecked == true)
+        return TypeValues.MemberSearchType.MemberSearchAccount;
+
+    if (BusinessRadioButton.IsChecked == true)
+        return TypeValues.MemberSearchType.MemberSearchBusiness;
+
+    return string.Empty;
 }
