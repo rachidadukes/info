@@ -1,1 +1,52 @@
 
+<!-- Transaction Type ComboBox -->
+<StackPanel Grid.Row="0"
+            Orientation="Horizontal"
+            Margin="0,0,0,10"
+            VerticalAlignment="Center">
+
+    <TextBlock Text="Transaction Type:"
+               FontSize="14"
+               FontWeight="SemiBold"
+               Foreground="#183B56"
+               VerticalAlignment="Center"
+               Margin="0,0,10,0" />
+
+    <ComboBox x:Name="TransactionTypeComboBox"
+              Width="180"
+              Height="28"
+              FontSize="13"
+              Margin="0,0,20,0"
+              SelectionChanged="TransactionTypeComboBox_SelectionChanged" />
+
+    <!-- Search Type Checkboxes -->
+    <StackPanel Orientation="Horizontal"
+                VerticalAlignment="Center">
+
+        <CheckBox x:Name="AccessNbrCheckBox"
+                  Content="Access Nbr"
+                  Margin="0,0,15,0"
+                  VerticalAlignment="Center" />
+
+        <CheckBox x:Name="LastNameCheckBox"
+                  Content="Last Name"
+                  Margin="0,0,15,0"
+                  VerticalAlignment="Center" />
+
+        <CheckBox x:Name="SSNCheckBox"
+                  Content="SSN"
+                  Margin="0,0,15,0"
+                  VerticalAlignment="Center" />
+
+        <CheckBox x:Name="AcctNbrCheckBox"
+                  Content="Acct Nbr"
+                  Margin="0,0,15,0"
+                  VerticalAlignment="Center" />
+
+        <CheckBox x:Name="BusinessCheckBox"
+                  Content="Business"
+                  VerticalAlignment="Center" />
+
+    </StackPanel>
+
+</StackPanel>
