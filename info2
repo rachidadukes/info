@@ -1,6 +1,24 @@
-   Task<List<BusinessNameModel>> GetBusinessNamesAsync(CancellationToken ct = default);
+public sealed class LookupApi(HttpClient http) : ILookupApi
+{
+    // Match your controller routes
+    private const string AccessPath = "api/reference/access";
+    private const string AccountsPath = "api/reference/accounts";
+    private const string SsnPath = "api/reference/ssns";
+    private const string MemberNamesPath = "api/reference/membernames";
+    private const string BusinessNamesPath = "api/reference/businessnames";
 
+    public async Task<List<AccessNumModel>> GetAccessNumbersAsync(CancellationToken ct = default) =>
+        await http.GetFromJsonAsync<List<AccessNumModel>>(AccessPath, ct) ?? new();
 
+    public async Task<List<AccountsModel>> GetAccountNumbersAsync(CancellationToken ct = default) =>
+        await http.GetFromJsonAsync<List<AccountsModel>>(AccountsPath, ct) ?? new();
+
+    public async Task<List<SsnModel>> GetSSNsAsync(CancellationToken ct = default) =>
+        await http.GetFromJsonAsync<List<SsnModel>>(SsnPath, ct) ?? new();
+
+    public async Task<List<MemberNameModel>> GetMemberNamesAsync(CancellationToken ct = default) =>
+        await http.GetFromJsonAsync<List<MemberNameModel>>(MemberNamesPath, ct) ?? new();
 
     public async Task<List<BusinessNameModel>> GetBusinessNamesAsync(CancellationToken ct = default) =>
-        await http.GetFromJsonAsync<List<BusinessNameModel>>(MemberNamesPath, ct) ?? new();
+        await http.GetFromJsonAsync<List<BusinessNameModel>>(BusinessNamesPath, ct) ?? new();
+}
