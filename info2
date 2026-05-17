@@ -1,10 +1,2 @@
-
-    [HttpGet("businessnames")]
-    [EndpointSummary("All Business Names")]
-    [EndpointDescription("All Business Names")]
-    [ProducesResponseType(typeof(IReadOnlyList<BusinessNameModel>), StatusCodes.Status200OK)]
-    public async Task<ActionResult<IReadOnlyList<BusinessNameModel>>> GetBusinessNames(
-       [FromQuery] string? startsWith,
-       [FromQuery] int take = 50,
-       CancellationToken ct = default)
-       => Ok(await svc.GetBusinessNamesAsync(startsWith, take, ct));
+  Task<IReadOnlyList<BusinessNameModel>> GetBusinessNamesAsync(
+      string? startsWith = null, int take = 50, CancellationToken ct = default);
