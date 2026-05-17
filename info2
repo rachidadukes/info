@@ -1,47 +1,18 @@
-
-using Microsoft.EntityFrameworkCore;
-using MyApp.Domain.Entities;
-
-namespace MyApp.Infrastructure.DataAccess
-{
-    public class DbContextSQLite : DbContext
-    {
-        public DbContextSQLite(DbContextOptions<DbContextSQLite> options) : base(options) { }
-
-        public DbSet<AccessAcctNumberModel> AccessAcctNumbers { get; set; }
-        public DbSet<SsnModel> SSNlist { get; set; }
-        public DbSet<MemberNameModel> MemberName { get; set; }
-
-        public DbSet<BusinessNameModel> BusinessName { get; set; }
-
-
-        protected override void OnModelCreating(ModelBuilder modelBuilder)
-        {
-            modelBuilder.Entity<AccessAcctNumberModel>(entity =>
-            {
-                entity.ToTable("AccessAcctNumbers");
-                entity.HasKey(e => e.Id);
-            });
-
-
-            modelBuilder.Entity<SsnModel>(entity =>
-            {
-                entity.ToTable("SSNlist");
-                entity.HasKey(e => e.Id);
-            });
-            modelBuilder.Entity<MemberNameModel>(entity =>
-            {
-                entity.ToTable("MemberName");
-                entity.HasKey(e => e.Id);
-            });
-
-            modelBuilder.Entity<BusinessNameModel>(entity =>
-            {
-                entity.ToTable("BusinessName");
-                entity.HasKey(e => e.Id);
-            });
-
-            //
-        }
-    }
-}
+ public async Task<IReadOnlyList<BusinessNameModel>> GetBusinessNamesAsync(
+    string? startsWith = null, int take = 50, CancellationToken ct = default)
+ {
+     using var db = await _dbFactory.CreateDbContextAsync(ct);
+     var q = db.BusinessName.AsNoTracking().AsQueryable();
+     if (!string.IsNullOrWhiteSpace(startsWith))
+         q = q.Where(r => r.LegalName!.StartsWith(startsWith, StringComparison.OrdinalIgnoreCase));
+     return await q
+         .GroupBy(r => new { r.LegalName, r.Environment })
+         .Select(r => new BusinessNameModel
+         {
+             LegalName = r.Key.LegalName,
+             Environment = r.Key.Environment
+         })
+          .OrderBy(r => r.LegalName)
+          .Take(take)
+         .ToListAsync(ct);
+ }
