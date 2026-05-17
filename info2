@@ -1,24 +1,47 @@
-public sealed class LookupApi(HttpClient http) : ILookupApi
+public Task<ResultWrapper<MemberSearchRespDTO>> GetMembersByBusinessNameAsync(
+  string legacy, string env, string businessName, CancellationToken ct = default)
 {
-    // Match your controller routes
-    private const string AccessPath = "api/reference/access";
-    private const string AccountsPath = "api/reference/accounts";
-    private const string SsnPath = "api/reference/ssns";
-    private const string MemberNamesPath = "api/reference/membernames";
-    private const string BusinessNamesPath = "api/reference/businessnames";
-
-    public async Task<List<AccessNumModel>> GetAccessNumbersAsync(CancellationToken ct = default) =>
-        await http.GetFromJsonAsync<List<AccessNumModel>>(AccessPath, ct) ?? new();
-
-    public async Task<List<AccountsModel>> GetAccountNumbersAsync(CancellationToken ct = default) =>
-        await http.GetFromJsonAsync<List<AccountsModel>>(AccountsPath, ct) ?? new();
-
-    public async Task<List<SsnModel>> GetSSNsAsync(CancellationToken ct = default) =>
-        await http.GetFromJsonAsync<List<SsnModel>>(SsnPath, ct) ?? new();
-
-    public async Task<List<MemberNameModel>> GetMemberNamesAsync(CancellationToken ct = default) =>
-        await http.GetFromJsonAsync<List<MemberNameModel>>(MemberNamesPath, ct) ?? new();
-
-    public async Task<List<BusinessNameModel>> GetBusinessNamesAsync(CancellationToken ct = default) =>
-        await http.GetFromJsonAsync<List<BusinessNameModel>>(BusinessNamesPath, ct) ?? new();
+    var result = searchSvc.GetMembersByBusinessAsync(legacy, env, businessName, ct);
+    return result;
 }
+
+========================
+  public Task<ResultWrapper<MemberSearchRespDTO>> GetMembersByBusinessNameAsync(
+      string legacy,
+      string env,
+      string businessName,
+      CancellationToken ct = default);
+============================
+
+ public async Task<IActionResult> SearchByBusinessName(string legacy, string env, string businessName, CancellationToken ct)
+ {
+     if (!Enum.TryParse<AppEnvironment>(env, true, out _))
+         return BadRequest("env must be UNIT or INTG.");
+     if (string.IsNullOrWhiteSpace(businessName))
+         return BadRequest("Business Name is required.");
+     try
+     {
+         var result = await _svc.GetMembersByBusinessNameAsync(legacy, env, businessName, ct);
+
+         if (!result.IsSuccess)
+             return StatusCode(StatusCodes.Status500InternalServerError, result);
+
+         return Ok(result);
+     }
+     catch (OperationCanceledException) when (ct.IsCancellationRequested)
+     {
+         return StatusCode(StatusCodes.Status499ClientClosedRequest);
+     }
+     catch (Exception ex)
+     {
+         // log ex here via ILogger<MembersController>
+         return StatusCode(StatusCodes.Status500InternalServerError,
+             new ResultWrapper<MemberSearchRespDTO>
+             {
+                 IsSuccess = false,
+                 ErrorMessage = $"Unexpected error: {ex.Message}"
+             });
+     }
+
+
+
