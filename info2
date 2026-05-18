@@ -1,30 +1,94 @@
-  catch (InvalidOperationException ex)
-       when (ex.InnerException is System.Xml.XmlException xmlEx)
-  {
-      errorXml = "===== XML DESERIALIZATION ERROR =====";
-      errorXml = $"Message  : {xmlEx.Message}";
-      errorXml = $"Line     : {xmlEx.LineNumber}";
-      errorXml = $"Position : {xmlEx.LinePosition}";
-      return errorXml;
-  }
-  catch (FaultException faultEx)
-  {
-      errorXml = "SOAP Fault:";
-      errorXml = errorXml + "Message: " + faultEx.Message;
-      errorXml = errorXml + "Code: " + faultEx.Code;
-      errorXml = errorXml + "Reason: " + faultEx.Reason;
-      return errorXml;
-  }
-  catch (CommunicationException ce)
-  {
-      errorXml = "Communication error:";
-      errorXml = errorXml + "Message: " + ce.Message;
-      errorXml = errorXml + "Details: " + ce.ToString();
-      return errorXml;
-  }
-  catch (Exception ex)
-  {
-      errorXml = "===== UNEXPECTED ERROR =====" + ex;
-      Console.WriteLine(errorXml);
-      return errorXml;
-  }
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Options;
+
+
+
+
+namespace MyApp.Contracts.Options;
+
+public enum AppEnvironment { UNIT, INTG }
+public enum ExternalService { MemberProfile, MemberSearch, Transactions }
+
+public sealed class ExternalApisOptions
+{
+    public string Current { get; set; } = nameof(AppEnvironment.UNIT);
+    // Keyed by service name (enum.ToString())
+    public Dictionary<string, ServiceMap> Services { get; set; } = new();
+
+    public sealed class ServiceMap
+    {
+        public Endpoint UNIT { get; set; } = new();
+        public Endpoint INTG { get; set; } = new();
+    }
+
+    public sealed class Endpoint
+    {
+        public string BaseUrl    { get; set; } = string.Empty;
+        public string NewBaseUrl { get; set; } = string.Empty;
+    }
+}
+
+public interface IEnvironmentAccessor
+{
+    AppEnvironment Current { get; }
+}
+
+public sealed class EnvironmentAccessor : IEnvironmentAccessor
+{
+    private readonly AppEnvironment _current;
+    public EnvironmentAccessor(IConfiguration cfg)
+    {
+        var raw = cfg["ExternalApis:Current"];
+        _current = Enum.TryParse(raw, true, out AppEnvironment env) ? env : AppEnvironment.UNIT;
+    }
+    public AppEnvironment Current => _current;
+}
+
+public interface IApiEndpointResolver
+{
+    // allow per-call override; if null, use EnvironmentAccessor.Current
+    Uri Resolve(ExternalService service, AppEnvironment? envOverride = null);
+    Uri ResolveNew(ExternalService service, AppEnvironment? envOverride = null);
+}
+
+public sealed class ApiEndpointResolver : IApiEndpointResolver
+{
+    private readonly ExternalApisOptions _opts;
+    private readonly IEnvironmentAccessor _env;
+
+    public ApiEndpointResolver(IOptions<ExternalApisOptions> options, IEnvironmentAccessor envAccessor)
+    {
+        _opts = options.Value;
+        _env = envAccessor;
+    }
+
+    public Uri Resolve(ExternalService service, AppEnvironment? envOverride = null)
+    {
+        if (!_opts.Services.TryGetValue(service.ToString(), out var map))
+            throw new InvalidOperationException(
+                $"Service '{service}' is not configured under ExternalApis:Services.");
+
+        var effectiveEnv = envOverride ?? _env.Current;
+        var url = effectiveEnv == AppEnvironment.UNIT ? map.UNIT.BaseUrl : map.INTG.BaseUrl;
+        if (string.IsNullOrWhiteSpace(url))
+            throw new InvalidOperationException(
+                $"BaseUrl for {service} in {effectiveEnv} is missing.");
+
+        return new Uri(url.TrimEnd('/'), UriKind.Absolute);
+    }
+
+    public Uri ResolveNew(ExternalService service, AppEnvironment? envOverride = null)
+    {
+        if (!_opts.Services.TryGetValue(service.ToString(), out var map))
+            throw new InvalidOperationException(
+                $"Service '{service}' is not configured under ExternalApis:Services.");
+
+        var effectiveEnv = envOverride ?? _env.Current;
+        var url = effectiveEnv == AppEnvironment.UNIT ? map.UNIT.NewBaseUrl : map.INTG.NewBaseUrl;
+        if (string.IsNullOrWhiteSpace(url))
+            throw new InvalidOperationException(
+                $"NewBaseUrl for {service} in {effectiveEnv} is missing.");
+
+        return new Uri(url.TrimEnd('/'), UriKind.Absolute);
+    }
+}
