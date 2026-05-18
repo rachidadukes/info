@@ -1,631 +1,138 @@
-@page "/"
-@rendermode InteractiveServer
-@using MyApp.Contracts
-@using MyApp.Contracts.Api
-@using MyApp.Contracts.DTOs
-@using MyApp.Domain
-@using MyApp.Domain.Entities
-@using MyApp.Services
-@using Integrations.Helpers
-@inject ILookupApi Api
-@inject IMembersApi MembersApi
-@inject LogService logService
-@inject Radzen.DialogService dialogService
+using Microsoft.EntityFrameworkCore;
+using MyApp.Domain.Entities;
+using MyApp.Infrastructure.DataAccess;
 
-<RadzenStack Orientation="Orientation.Vertical" class="rz-mt-4 rz-mb-4">
+namespace MyApp.ReferenceData;
 
-    <div class="rz-mb-3 rz-flex rz-items-center rz-gap-2">
-        <RadzenButton Text="Clear filters" Click="@ClearFilters" />
-        <RadzenLabel Text="@SelectionSummary" Style="font-weight:600;" />
-    </div>
+/// <summary>
+/// EF Core implementation that reads sample rows from SQLite and projects distinct,
+/// environment-scoped values for UI pickers and test calls.
+/// </summary>
+public sealed class ReferenceDataService : IReferenceDataService
+{
+    private readonly IDbContextFactory<DbContextSQLite> _dbFactory;
 
-    <RadzenRadioButtonList TValue="int" class="rz-mb-4"
-                           Value="@searchSelection"
-                           ValueChanged="@OnRadioSelectionChanged">
-        <Items>
-            <RadzenRadioButtonListItem Text="By Access Number" Value="1" />
-            <RadzenRadioButtonListItem Text="By Account Number" Value="2" />
-            <RadzenRadioButtonListItem Text="By SSN" Value="3" />
-            <RadzenRadioButtonListItem Text="By Member Name" Value="4" />
-            <RadzenRadioButtonListItem Text="By Business Name" Value="5" />
-        </Items>
-    </RadzenRadioButtonList>
-
-    @if (searchSelection == 1)
+    public ReferenceDataService(IDbContextFactory<DbContextSQLite> dbFactory)
     {
-        @if ((AllAccessNumbers?.Count ?? 0) > 0)
-        {
-            <RadzenDataGrid @ref="gridAccess"
-            AllowPaging="true" PageSize="10" AllowSorting="true"
-            AllowFiltering="true" FilterMode="FilterMode.Advanced"
-            Data="@AllAccessNumbers" TItem="AccessNumModel"
-            SelectionMode="Radzen.DataGridSelectionMode.Single"
-            RowSelect="@OnAccessNumSelectionChange"
-            @onchange="OnSelectionChange">
-                <Columns>
-                    <RadzenDataGridColumn TItem="AccessNumModel" Property="Environment"
-                    Title="Environment"
-                    FilterMode="FilterMode.CheckBoxList"
-                    AllowCheckBoxListVirtualization="false" />
-                    <RadzenDataGridColumn TItem="AccessNumModel" Property="ApiType" Title="Api Type"
-                    FilterMode="FilterMode.CheckBoxList"
-                    AllowCheckBoxListVirtualization="false" />
-                    <RadzenDataGridColumn TItem="AccessNumModel"
-                    Property="AccessNumber" Title="Access Number" />
-                </Columns>
-            </RadzenDataGrid>
-        }
-        else
-        {
-
-            <p>No access numbers available.</p>
-        }
-    }
-    else if (searchSelection == 2)
-    {
-        @if ((AllAccountNumbers?.Count ?? 0) > 0)
-        {
-            <RadzenDataGrid @ref="gridAccounts"
-            Data="@AllAccountNumbers"
-            TItem="AccountsModel"
-            AllowPaging="true" PageSize="10"
-            AllowSorting="true"
-            AllowFiltering="true" FilterMode="FilterMode.Advanced"
-            SelectionMode="DataGridSelectionMode.Single"
-            RowSelect="@OnAccountNumberSelectionChange"
-            @onchange="OnSelectionChange">
-                <Columns>
-                    <RadzenDataGridColumn TItem="AccountsModel" Property="Environment" Title="Environment"
-                    FilterMode="FilterMode.CheckBoxList" AllowCheckBoxListVirtualization="false" />
-                    <RadzenDataGridColumn TItem="AccountsModel" Property="ApiType" Title="Api Type"
-                    FilterMode="FilterMode.CheckBoxList" AllowCheckBoxListVirtualization="false" />
-                    <RadzenDataGridColumn TItem="AccountsModel" Property="AccountNumber" Title="Account Number" />
-                    <RadzenDataGridColumn TItem="AccountsModel" Property="AccountType" Title="Account Type" />
-                </Columns>
-            </RadzenDataGrid>
-        }
-        else
-        {
-
-            <p>No account numbers available.</p>
-        }
-    }
-    else if (searchSelection == 3)
-    {
-        @if ((AllSSNs?.Count ?? 0) > 0)
-        {
-            <RadzenDataGrid @ref="gridSSN"
-            Data="@AllSSNs"
-            TItem="SsnModel"
-            AllowPaging="true" PageSize="10"
-            AllowSorting="true"
-            AllowFiltering="true" FilterMode="FilterMode.Advanced"
-            SelectionMode="DataGridSelectionMode.Single"
-            RowSelect="@OnSSNSelectionChange"
-            @onchange="OnSelectionChange">
-                <Columns>
-                    <RadzenDataGridColumn TItem="SsnModel" Property="Environment" Title="Environment"
-                    FilterMode="FilterMode.CheckBoxList" AllowCheckBoxListVirtualization="false" />
-                    <RadzenDataGridColumn TItem="SsnModel" Property="ApiType" Title="Api Type"
-                    FilterMode="FilterMode.CheckBoxList" AllowCheckBoxListVirtualization="false" />
-                    <RadzenDataGridColumn TItem="SsnModel" Property="SSN" Title="SSN" />
-                </Columns>
-            </RadzenDataGrid>
-        }
-        else
-        {
-
-            <p>No SSNs available.</p>
-        }
-    }
-    else if (searchSelection == 4)
-    {
-        @if ((AllMemberNames?.Count ?? 0) > 0)
-        {
-            <RadzenDataGrid @ref="gridMemberName"
-            Data="@AllMemberNames"
-            TItem="MemberNameModel"
-            AllowPaging="true" PageSize="10"
-            AllowSorting="true"
-            AllowFiltering="true" FilterMode="FilterMode.Advanced"
-            SelectionMode="DataGridSelectionMode.Single"
-            RowSelect="@OnMemberNameSelectionChange"
-            @onchange="OnSelectionChange">
-                <Columns>
-                    <RadzenDataGridColumn TItem="MemberNameModel" Property="Environment" Title="Environment"
-                    FilterMode="FilterMode.CheckBoxList" AllowCheckBoxListVirtualization="false" />
-                    <RadzenDataGridColumn TItem="MemberNameModel" Property="ApiType" Title="Api Type"
-                    FilterMode="FilterMode.CheckBoxList" AllowCheckBoxListVirtualization="false" />
-                    <RadzenDataGridColumn TItem="MemberNameModel" Property="LastName" Title="Last Name" />
-                    <RadzenDataGridColumn TItem="MemberNameModel" Property="FirstName" Title="First Name" />
-                </Columns>
-            </RadzenDataGrid>
-        }
-
-        else
-        {
-
-            <p>No member names available.</p>
-        }
-    }
-    else if (searchSelection == 5)
-    {
-        @if ((AllBusinessNames?.Count ?? 0) > 0)
-        {
-            <RadzenDataGrid @ref="gridBusinessName"
-            Data="@AllBusinessNames"
-            TItem="BusinessNameModel"
-            AllowPaging="true" PageSize="10"
-            AllowSorting="true"
-            AllowFiltering="true" FilterMode="FilterMode.Advanced"
-            SelectionMode="DataGridSelectionMode.Single"
-                            RowSelect="@OnBusinessNameSelectionChange"
-            @onchange="OnSelectionChange">
-                <Columns>
-                    <RadzenDataGridColumn TItem="BusinessNameModel" Property="Environment" Title="Environment"
-                    FilterMode="FilterMode.CheckBoxList" AllowCheckBoxListVirtualization="false" />
-                    <RadzenDataGridColumn TItem="BusinessNameModel" Property="ApiType" Title="Api Type"
-                    FilterMode="FilterMode.CheckBoxList" AllowCheckBoxListVirtualization="false" />
-                    <RadzenDataGridColumn TItem="BusinessNameModel" Property="LegalName" Title="Legal Name" />
-                </Columns>
-            </RadzenDataGrid>
-        }
-
-        else
-        {
-
-            <p>No business names available.</p>
-        }
+        _dbFactory = dbFactory;
     }
 
-    @if (!string.IsNullOrEmpty(LoadingMessage))
+    public async Task<IReadOnlyList<AccessNumModel>> GetAccessNumbersAsync(
+     string? startsWith = null, int take = 50, CancellationToken ct = default)
     {
-        <RadzenLabel Text="@LoadingMessage" Style="color: var(--rz-secondary);" />
-    }
-    @if (!string.IsNullOrEmpty(ErrorMessage))
-    {
-        <RadzenLabel Text="@ErrorMessage" Style="color: var(--rz-danger);" />
-    }
+        await using var db = await _dbFactory.CreateDbContextAsync(ct);
 
-    <RadzenButton Radzen.ButtonType="ButtonType.Submit"
-                  Disabled="@(!IsSelectionMade)"
-                  Text="Submit"
-                  Click="@(async () => await CallSearchMembersService())" />
+        var q = db.AccessAcctNumbers.AsNoTracking()
+            .Where(r => r.AccessNumber != null);
 
-    <div>
-        @if (headerResponseDetail != null)
-        {
-            <RadzenLabel Text="Host Response" Style="color:red; font:300" />
-            <RadzenDataGrid ColumnWidth="150px" AllowFiltering="true" AllowPaging="true" PageSize="8"
-                            AllowSorting="true" Data="@headerResponseDetail" TItem="HeaderResponseDetail">
-                <Columns>
-                    <RadzenDataGridColumn TItem="HeaderResponseDetail" Property="HeaderResponseDetail.FieldName" Title="FieldName" />
-                    <RadzenDataGridColumn TItem="HeaderResponseDetail" Property="Alert.FieldValue" Title="FieldValue" />
-                </Columns>
-            </RadzenDataGrid>
-        }
-    </div>
+        if (!string.IsNullOrWhiteSpace(startsWith))
+            q = q.Where(r => EF.Functions.Like(r.AccessNumber!, startsWith + "%"));
 
-</RadzenStack>
-
-@code {
-    // Grids
-    RadzenDataGrid<AccessNumModel>? gridAccess;
-    RadzenDataGrid<AccountsModel>? gridAccounts;
-    RadzenDataGrid<SsnModel>? gridSSN;
-    RadzenDataGrid<MemberNameModel>? gridMemberName;
-    RadzenDataGrid<BusinessNameModel>? gridBusinessName;
-
-    // Radio: 1=Access, 2=Account, 3=SSN, 4=MemberName
-    int searchSelection = 1;
-    bool IsSelectionMade = false;
-    private string? selectionMade;
-    // Data
-    List<AccessNumModel>? AllAccessNumbers;
-    List<AccountsModel>? AllAccountNumbers;
-    List<SsnModel>? AllSSNs;
-    List<MemberNameModel>? AllMemberNames;
-    List<BusinessNameModel>? AllBusinessNames;
-
-    // response entities
-    private MemberSearchRespDTO? searchMemberRs;
-    public IEnumerable<HeaderResponseDetail>? headerResponseDetail;
-    private List<Member>? membersList;
-
-
-    // Current selection
-    string? selectedEnvironment;
-    string? selectedApiType;
-    string? selectedAccessNumber;
-    string? selectedAccountNumber;
-    string? selectedAccountType;
-    string? selectedSSN;
-    string? selectedLastName;
-    string? selectedFirstName;
-    string? selectedBusinessName;
-    private string? enteredMemberInfo;
-
-    string SelectionSummary => BuildSelectionSummary();
-    private SearchType? searchType;
-    public string? LoadingMessage { get; set; } = "";
-    public string? ErrorMessage { get; set; } = "";
-    string? selectedItem;
-
-    public string? HostErrorMessage = "";
-
-
-    protected override async Task OnInitializedAsync()
-    {
-        try
-        {
-            ResetVariables();
-            LoadingMessage = "Loading lookup data...";
-            ErrorMessage = "";
-            var accessTask = LoadAllAccessNums();
-            var acctTask = LoadAllAccountNumbers();
-            var ssnTask = LoadAllSSNs();
-            var memberTask = LoadAllMemberNames();
-            var businessTask = LoadAllBusinessNames();
-
-
-            await Task.WhenAll(accessTask, acctTask, ssnTask, memberTask);
-        }
-        catch (Exception ex)
-        {
-            ErrorMessage = $"Error during initialization: {ex.Message}";
-        }
-        finally
-        {
-            LoadingMessage = "";
-        }
-    }
-
-    void ClearFilters()
-    {
-        switch (searchSelection)
-        {
-            case 1: gridAccess?.Reset(true); break;
-            case 2: gridAccounts?.Reset(true); break;
-            case 3: gridSSN?.Reset(true); break;
-            case 4: gridMemberName?.Reset(true); break;
-            case 5: gridBusinessName?.Reset(true); break;
-        }
-    }
-    private void ResetVariables()
-    {
-        searchMemberRs = null;
-        headerResponseDetail = null;
-        HostErrorMessage = "";
-        LoadingMessage = "";
-    }
-
-    // ---- Loaders (via ILookupApi) ----
-    async Task LoadAllAccessNums()
-    {
-        try
-        {
-            var result = await Api.GetAccessNumbersAsync();
-            AllAccessNumbers = result?
-                .Select(x => { x.Environment = x.Environment?.Trim().ToUpperInvariant(); return x; })
-                .ToList();
-        }
-        catch (Exception ex) { ErrorMessage = $"Access numbers load failed: {ex.Message}"; }
-    }
-
-    async Task LoadAllAccountNumbers()
-    {
-        try
-        {
-            var result = await Api.GetAccountNumbersAsync();
-            AllAccountNumbers = result?
-                .Select(x => { x.Environment = x.Environment?.Trim().ToUpperInvariant(); return x; })
-                .ToList();
-        }
-        catch (Exception ex) { ErrorMessage = $"Account numbers load failed: {ex.Message}"; }
-    }
-
-    async Task LoadAllSSNs()
-    {
-        try
-        {
-            var result = await Api.GetSSNsAsync();
-            AllSSNs = result?
-                .Select(x => { x.Environment = x.Environment?.Trim().ToUpperInvariant(); return x; })
-                .ToList();
-        }
-        catch (Exception ex) { ErrorMessage = $"SSNs load failed: {ex.Message}"; }
-    }
-
-    async Task LoadAllMemberNames()
-    {
-        try
-        {
-            var result = await Api.GetMemberNamesAsync();
-            AllMemberNames = result?
-                .Select(x => { x.Environment = x.Environment?.Trim().ToUpperInvariant(); return x; })
-                .ToList();
-        }
-        catch (Exception ex) { ErrorMessage = $"Member names load failed: {ex.Message}"; }
-    }
-
-
-    async Task LoadAllBusinessNames()
-    {
-        try
-        {
-            var result = await Api.GetBusinessNamesAsync();
-            AllBusinessNames = result?
-                .Select(x => { x.Environment = x.Environment?.Trim().ToUpperInvariant(); return x; })
-                .ToList();
-        
-        }
-        catch (Exception ex) { ErrorMessage = $"Business names load failed: {ex.Message}"; }
-    }
-
-    string BuildSelectionSummary()
-    {
-        if (!string.IsNullOrWhiteSpace(selectedAccessNumber))
-            return $"Selected: Access Number {selectedAccessNumber} ({selectedEnvironment})";
-        if (!string.IsNullOrWhiteSpace(selectedAccountNumber))
-            return $"Selected: Account {selectedAccountNumber} | Type {selectedAccountType} ({selectedEnvironment})";
-        if (!string.IsNullOrWhiteSpace(selectedSSN))
-            return $"Selected: SSN {selectedSSN} ({selectedEnvironment})";
-        if (!string.IsNullOrWhiteSpace(selectedLastName) || !string.IsNullOrWhiteSpace(selectedFirstName))
-            return $"Selected: Member Name {selectedFirstName} {selectedLastName} ({selectedEnvironment})";
-        if (!string.IsNullOrWhiteSpace(selectedBusinessName))
-            return $"Selected: Business Name {selectedBusinessName} ({selectedEnvironment})";
-        return "No selection";
-    }
-
-
-
-
-    // ---- Row selection handlers ----
-    Task OnAccessNumSelectionChange(AccessNumModel item)
-    {
-        ResetVariables();
-        selectedEnvironment = item.Environment;
-        selectedAccessNumber = item.AccessNumber;
-        selectedApiType = item.ApiType;
-        selectedAccountNumber = selectedAccountType = selectedSSN = selectedLastName = selectedFirstName = selectedBusinessName = null;
-        IsSelectionMade = !string.IsNullOrEmpty(selectedAccessNumber);
-        StateHasChanged();
-        return Task.CompletedTask;
-    }
-
-    Task OnAccountNumberSelectionChange(AccountsModel item)
-    {
-        ResetVariables();
-        selectedEnvironment = item.Environment;
-        selectedAccountNumber = item.AccountNumber;
-        selectedAccountType = item.AccountType;
-        selectedApiType = item.ApiType;
-        selectedAccessNumber = selectedSSN = selectedLastName = selectedFirstName = selectedBusinessName = null;
-        IsSelectionMade = !string.IsNullOrEmpty(selectedAccountNumber);
-        StateHasChanged();
-        return Task.CompletedTask;
-    }
-
-    Task OnSSNSelectionChange(SsnModel item)
-    {
-        ResetVariables();
-        selectedEnvironment = item.Environment;
-        selectedApiType = item.ApiType;
-        selectedSSN = item.SSN;
-        selectedAccessNumber = selectedAccountNumber = selectedAccountType = selectedLastName = selectedFirstName = selectedBusinessName = null;
-        IsSelectionMade = !string.IsNullOrEmpty(selectedSSN);
-        StateHasChanged();
-        return Task.CompletedTask;
-    }
-
-    Task OnMemberNameSelectionChange(MemberNameModel item)
-    {
-        ResetVariables();
-        selectedEnvironment = item.Environment;
-        selectedApiType = item.ApiType;
-        selectedFirstName = item.FirstName;
-        selectedLastName = item.LastName;
-        selectedAccessNumber = selectedAccountNumber = selectedAccountType = selectedSSN = selectedBusinessName = null;
-        IsSelectionMade = !string.IsNullOrEmpty(selectedLastName) || !string.IsNullOrEmpty(selectedFirstName);
-        StateHasChanged();
-        return Task.CompletedTask;
-    }
-
-    Task OnBusinessNameSelectionChange(BusinessNameModel item)
-    {
-        ResetVariables();
-        selectedEnvironment = item.Environment;
-        selectedApiType = item.ApiType;
-        selectedBusinessName = item.LegalName;
-        selectedAccessNumber = selectedAccountNumber = selectedAccountType = selectedSSN = null;
-        IsSelectionMade = !string.IsNullOrEmpty(selectedBusinessName);
-        StateHasChanged();
-        return Task.CompletedTask;
-    }
-    private Task MemberSelectedInfoDetails()
-    {
-        try
-        {
-            if (!string.IsNullOrEmpty(selectedAccessNumber) && searchSelection == 1)
+        return await q
+            .GroupBy(r => new { r.AccessNumber, r.Environment, r.ApiType })
+            .Select(g => new AccessNumModel
             {
-                enteredMemberInfo = $"Access Number: {selectedAccessNumber} ({selectedEnvironment})";
-            }
-            else if (!string.IsNullOrEmpty(selectedAccountNumber))
-            {
-                enteredMemberInfo = $"Account Number: {selectedAccountNumber} | Account Type: {selectedAccountType} ({selectedEnvironment})";
-            }
-            else if (!string.IsNullOrEmpty(selectedSSN))
-            {
-                enteredMemberInfo = $"SSN: {selectedSSN} ({selectedEnvironment})";
-            }
-            else if (!string.IsNullOrEmpty(selectedLastName) || !string.IsNullOrEmpty(selectedFirstName))
-            {
-                enteredMemberInfo = $"First Name: {selectedFirstName} | Last Name: {selectedLastName} ({selectedEnvironment})";
-            }
-            else if (!string.IsNullOrEmpty(selectedBusinessName))
-            {
-                enteredMemberInfo = $"Business Name: {selectedBusinessName} ({selectedEnvironment})";
-            }
-            else
-            {
-                enteredMemberInfo = "No member selected";
-            }
-
-            LoadingMessage = "";
-            return Task.CompletedTask;
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"An error occurred: {ex.Message}");
-            return Task.CompletedTask;
-        }
-    }
-    private void OnSelectionChange(ChangeEventArgs e)
-    {
-        ResetVariables();
-        selectedItem = e.Value?.ToString();
-        IsSelectionMade = !string.IsNullOrEmpty(selectedItem);
-        StateHasChanged();
+                AccessNumber = g.Key.AccessNumber!,
+                Environment  = g.Key.Environment,
+                ApiType      = g.Key.ApiType
+            })
+            .OrderBy(m => m.AccessNumber)
+            .Take(take)
+            .ToListAsync(ct);
     }
 
-    void OnRadioSelectionChanged(int newValue)
+    public async Task<IReadOnlyList<AccountsModel>> GetAccountNumbersAsync(
+         string? startsWith = null, int take = 50, CancellationToken ct = default)
     {
-        ResetVariables();
-        searchSelection = newValue;
-        selectedItem = null;
-        IsSelectionMade = false;
-        StateHasChanged();
-    }
-    private async Task CallSearchMembersService()
-    {
-        ResultWrapper<MemberSearchRespDTO>? result = null;
+        using var db = await _dbFactory.CreateDbContextAsync(ct);
 
-        try
-        {
-            ErrorMessage = "";
-            LoadingMessage = "Loading Members. Please wait...";
+        var q = db.AccessAcctNumbers.AsNoTracking()
+            .Where(r => r.AccountNumber != null);
 
-            if (string.IsNullOrWhiteSpace(selectedEnvironment))
-            {
-                ErrorMessage = "Select an item first (environment is required).";
-                return;
-            }
+        if (!string.IsNullOrWhiteSpace(startsWith))
+            q = q.Where(r => r.AccountNumber!.StartsWith(startsWith, StringComparison.OrdinalIgnoreCase));
 
-            searchType = new SearchType();
-
-            if (!string.IsNullOrEmpty(selectedAccessNumber) && searchSelection == 1)
+        return await q
+            .GroupBy(r => new { r.AccountNumber, r.AccountType, r.Environment, r.ApiType })
+            .Select(r => new AccountsModel
             {
-                searchType.Type = "By Access Number";
-                searchType.AccessNumber = selectedAccessNumber;
-                selectionMade = $"By Access Number : {selectedAccessNumber}";
-                result = await MembersApi.SearchByAccessAsync(selectedApiType, selectedEnvironment, selectedAccessNumber);
-            }
-            else if (!string.IsNullOrEmpty(selectedAccountNumber) &&
-                     !string.IsNullOrEmpty(selectedAccountType) &&
-                     searchSelection == 2)
-            {
-                searchType.Type = "By Account Number";
-                searchType.AccountNumber = selectedAccountNumber;
-                selectionMade = $"Account Number : {selectedAccountNumber}";
-                result = await MembersApi.SearchByAccountAsync(
-                    selectedApiType, selectedEnvironment, selectedAccountNumber, selectedAccountType);
-            }
-            else if (!string.IsNullOrEmpty(selectedSSN) && searchSelection == 3)
-            {
-                searchType.Type = "By SSN";
-                searchType.SSN = selectedSSN;
-                selectionMade = $"SSN : {selectedSSN}";
-                result = await MembersApi.SearchBySsnAsync(selectedApiType, selectedEnvironment, selectedSSN);
-            }
-            else if ((!string.IsNullOrEmpty(selectedLastName) || !string.IsNullOrEmpty(selectedFirstName)) && searchSelection == 4)
-            {
-                searchType.Type = "By Member Name";
-                searchType.LastName = selectedLastName;
-                searchType.FirstName = selectedFirstName;
-                selectionMade = $"Member Name : {selectedFirstName} {selectedLastName}";
-                result = await MembersApi.SearchByMemberNameAsync(selectedApiType, selectedEnvironment, selectedLastName, selectedFirstName);
-
-            }
-            else if (!string.IsNullOrEmpty(selectedBusinessName) && searchSelection == 5)
-            {
-                searchType.Type = "By Business Name";
-                searchType.BusinessName = selectedBusinessName;
-                selectionMade = $"Business Name : {selectedBusinessName}";
-                result = await MembersApi.SearchByBusinessNameAsync(selectedApiType, selectedEnvironment, selectedBusinessName);
-            }
-            else
-            {
-                ErrorMessage = "Nothing selected.";
-                return;
-            }
-
-            // simple feedback
-            if (result?.Data != null)
-            {
-                var found = result.Data.Members?.Count ?? 0;
-                LoadingMessage = $"Members Found: {found}";
-            }
-            else
-            {
-                ErrorMessage = result?.ErrorMessage ?? "No data returned.";
-            }
-
-            await StoreMemberSearchLogsIntoLocalStorage();
-            ProcessMemberSearchResult(result);
-            await DisplayMembers();
-
-        }
-        catch (Exception ex)
-        {
-            ErrorMessage = $"Search failed: {ex.Message}";
-        }
-        finally
-        {
-            // keep the message a moment; remove if you prefer it cleared immediately
-            // LoadingMessage = "";
-            StateHasChanged();
-        }
+                AccountNumber = r.Key.AccountNumber,
+                AccountType   = r.Key.AccountType,
+                Environment   = r.Key.Environment,
+                ApiType       = r.Key.ApiType
+            })
+            .OrderBy(r => r.AccountNumber)
+            .Take(take)
+            .ToListAsync(ct);
     }
 
-
-    private async Task DisplayMembers()
+    public async Task<IReadOnlyList<SsnModel>> GetSsnsAsync(
+         string? startsWith = null, int take = 50, CancellationToken ct = default)
     {
-        if (membersList != null && membersList.Any())
-        {
-            LoadingMessage = (LoadingMessage ?? "") + " | Members Found: " + membersList.Count;
-            StateHasChanged();
+        using var db = await _dbFactory.CreateDbContextAsync(ct);
 
-            await MemberSelectedInfoDetails();
-            await dialogService.OpenAsync<MemberSearchResultPage>($"{enteredMemberInfo}",
-                new Dictionary<string, object>()
-                {
-                    { "membersList", membersList },
-                    { "selectedEnvironment", selectedEnvironment }
-                },
-                new Radzen.DialogOptions() { Width = "1100px", Height = "420px" });
-        }
-    }
+        var q = db.SSNlist.AsNoTracking().AsQueryable();
 
+        if (!string.IsNullOrWhiteSpace(startsWith))
+            q = q.Where(r => r.SSN!.StartsWith(startsWith, StringComparison.OrdinalIgnoreCase));
 
-    private void ProcessMemberSearchResult(ResultWrapper<MemberSearchRespDTO> result)
-    {
-        searchMemberRs = result?.Data ?? new MemberSearchRespDTO();
-        membersList = searchMemberRs?.Members?.ToList();
-        HostErrorMessage = result?.Data is null ? result?.ErrorMessage : null;
-        headerResponseDetail = searchMemberRs?.HeaderResponse?.ToList();
-    }
-    private async Task StoreMemberSearchLogsIntoLocalStorage()
-    {
-        try
-        {
-            if (searchMemberRs != null)
+        return await q
+            .GroupBy(r => new { r.SSN, r.Environment, r.ApiType })
+            .Select(r => new SsnModel
             {
-                await logService.AddMemberSearchLog(searchMemberRs, searchType);
-            }
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"An error occurred: {ex.Message}");
-        }
+                SSN         = r.Key.SSN,
+                Environment = r.Key.Environment,
+                ApiType     = r.Key.ApiType
+            })
+            .OrderBy(r => r.SSN)
+            .Take(take)
+            .ToListAsync(ct);
+    }
+
+    public async Task<IReadOnlyList<MemberNameModel>> GetMemberNamesAsync(
+       string? startsWith = null, int take = 50, CancellationToken ct = default)
+    {
+        using var db = await _dbFactory.CreateDbContextAsync(ct);
+
+        var q = db.MemberName.AsNoTracking().AsQueryable();
+
+        if (!string.IsNullOrWhiteSpace(startsWith))
+            q = q.Where(r => r.LastName!.StartsWith(startsWith, StringComparison.OrdinalIgnoreCase));
+
+        return await q
+            .GroupBy(r => new { r.LastName, r.FirstName, r.Environment, r.ApiType })
+            .Select(r => new MemberNameModel
+            {
+                LastName    = r.Key.LastName,
+                FirstName   = r.Key.FirstName,
+                Environment = r.Key.Environment,
+                ApiType     = r.Key.ApiType
+            })
+            .OrderBy(r => r.LastName)
+            .Take(take)
+            .ToListAsync(ct);
+    }
+
+    public async Task<IReadOnlyList<BusinessNameModel>> GetBusinessNamesAsync(
+       string? startsWith = null, int take = 50, CancellationToken ct = default)
+    {
+        using var db = await _dbFactory.CreateDbContextAsync(ct);
+
+        var q = db.BusinessName.AsNoTracking().AsQueryable();
+
+        if (!string.IsNullOrWhiteSpace(startsWith))
+            q = q.Where(r => r.LegalName!.StartsWith(startsWith, StringComparison.OrdinalIgnoreCase));
+
+        return await q
+            .GroupBy(r => new { r.LegalName, r.Environment, r.ApiType })
+            .Select(r => new BusinessNameModel
+            {
+                LegalName   = r.Key.LegalName,
+                Environment = r.Key.Environment,
+                ApiType     = r.Key.ApiType
+            })
+            .OrderBy(r => r.LegalName)
+            .Take(take)
+            .ToListAsync(ct);
     }
 }
