@@ -1,138 +1,48 @@
+
 using Microsoft.EntityFrameworkCore;
 using MyApp.Domain.Entities;
-using MyApp.Infrastructure.DataAccess;
 
-namespace MyApp.ReferenceData;
-
-/// <summary>
-/// EF Core implementation that reads sample rows from SQLite and projects distinct,
-/// environment-scoped values for UI pickers and test calls.
-/// </summary>
-public sealed class ReferenceDataService : IReferenceDataService
+namespace MyApp.Infrastructure.DataAccess
 {
-    private readonly IDbContextFactory<DbContextSQLite> _dbFactory;
-
-    public ReferenceDataService(IDbContextFactory<DbContextSQLite> dbFactory)
+    public class DbContextSQLite : DbContext
     {
-        _dbFactory = dbFactory;
-    }
+        public DbContextSQLite(DbContextOptions<DbContextSQLite> options) : base(options) { }
 
-    public async Task<IReadOnlyList<AccessNumModel>> GetAccessNumbersAsync(
-     string? startsWith = null, int take = 50, CancellationToken ct = default)
-    {
-        await using var db = await _dbFactory.CreateDbContextAsync(ct);
+        public DbSet<AccessNumModel> AccessNumbers { get; set; }
+        public DbSet<AccountsModel> Accounts { get; set; }
+        public DbSet<SsnModel> SSNlist { get; set; }
+        public DbSet<MemberNameModel> MemberName { get; set; }
 
-        var q = db.AccessAcctNumbers.AsNoTracking()
-            .Where(r => r.AccessNumber != null);
+        public DbSet<BusinessNameModel> BusinessName { get; set; }
 
-        if (!string.IsNullOrWhiteSpace(startsWith))
-            q = q.Where(r => EF.Functions.Like(r.AccessNumber!, startsWith + "%"));
 
-        return await q
-            .GroupBy(r => new { r.AccessNumber, r.Environment, r.ApiType })
-            .Select(g => new AccessNumModel
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        {
+            modelBuilder.Entity<AccessNumModel>(entity =>
             {
-                AccessNumber = g.Key.AccessNumber!,
-                Environment  = g.Key.Environment,
-                ApiType      = g.Key.ApiType
-            })
-            .OrderBy(m => m.AccessNumber)
-            .Take(take)
-            .ToListAsync(ct);
-    }
+                entity.ToTable("AccessNumbers");
+                entity.HasKey(e => e.Id);
+            });
 
-    public async Task<IReadOnlyList<AccountsModel>> GetAccountNumbersAsync(
-         string? startsWith = null, int take = 50, CancellationToken ct = default)
-    {
-        using var db = await _dbFactory.CreateDbContextAsync(ct);
 
-        var q = db.AccessAcctNumbers.AsNoTracking()
-            .Where(r => r.AccountNumber != null);
-
-        if (!string.IsNullOrWhiteSpace(startsWith))
-            q = q.Where(r => r.AccountNumber!.StartsWith(startsWith, StringComparison.OrdinalIgnoreCase));
-
-        return await q
-            .GroupBy(r => new { r.AccountNumber, r.AccountType, r.Environment, r.ApiType })
-            .Select(r => new AccountsModel
+            modelBuilder.Entity<SsnModel>(entity =>
             {
-                AccountNumber = r.Key.AccountNumber,
-                AccountType   = r.Key.AccountType,
-                Environment   = r.Key.Environment,
-                ApiType       = r.Key.ApiType
-            })
-            .OrderBy(r => r.AccountNumber)
-            .Take(take)
-            .ToListAsync(ct);
-    }
-
-    public async Task<IReadOnlyList<SsnModel>> GetSsnsAsync(
-         string? startsWith = null, int take = 50, CancellationToken ct = default)
-    {
-        using var db = await _dbFactory.CreateDbContextAsync(ct);
-
-        var q = db.SSNlist.AsNoTracking().AsQueryable();
-
-        if (!string.IsNullOrWhiteSpace(startsWith))
-            q = q.Where(r => r.SSN!.StartsWith(startsWith, StringComparison.OrdinalIgnoreCase));
-
-        return await q
-            .GroupBy(r => new { r.SSN, r.Environment, r.ApiType })
-            .Select(r => new SsnModel
+                entity.ToTable("SSNlist");
+                entity.HasKey(e => e.Id);
+            });
+            modelBuilder.Entity<MemberNameModel>(entity =>
             {
-                SSN         = r.Key.SSN,
-                Environment = r.Key.Environment,
-                ApiType     = r.Key.ApiType
-            })
-            .OrderBy(r => r.SSN)
-            .Take(take)
-            .ToListAsync(ct);
-    }
+                entity.ToTable("MemberName");
+                entity.HasKey(e => e.Id);
+            });
 
-    public async Task<IReadOnlyList<MemberNameModel>> GetMemberNamesAsync(
-       string? startsWith = null, int take = 50, CancellationToken ct = default)
-    {
-        using var db = await _dbFactory.CreateDbContextAsync(ct);
-
-        var q = db.MemberName.AsNoTracking().AsQueryable();
-
-        if (!string.IsNullOrWhiteSpace(startsWith))
-            q = q.Where(r => r.LastName!.StartsWith(startsWith, StringComparison.OrdinalIgnoreCase));
-
-        return await q
-            .GroupBy(r => new { r.LastName, r.FirstName, r.Environment, r.ApiType })
-            .Select(r => new MemberNameModel
+            modelBuilder.Entity<BusinessNameModel>(entity =>
             {
-                LastName    = r.Key.LastName,
-                FirstName   = r.Key.FirstName,
-                Environment = r.Key.Environment,
-                ApiType     = r.Key.ApiType
-            })
-            .OrderBy(r => r.LastName)
-            .Take(take)
-            .ToListAsync(ct);
-    }
+                entity.ToTable("BusinessName");
+                entity.HasKey(e => e.Id);
+            });
 
-    public async Task<IReadOnlyList<BusinessNameModel>> GetBusinessNamesAsync(
-       string? startsWith = null, int take = 50, CancellationToken ct = default)
-    {
-        using var db = await _dbFactory.CreateDbContextAsync(ct);
-
-        var q = db.BusinessName.AsNoTracking().AsQueryable();
-
-        if (!string.IsNullOrWhiteSpace(startsWith))
-            q = q.Where(r => r.LegalName!.StartsWith(startsWith, StringComparison.OrdinalIgnoreCase));
-
-        return await q
-            .GroupBy(r => new { r.LegalName, r.Environment, r.ApiType })
-            .Select(r => new BusinessNameModel
-            {
-                LegalName   = r.Key.LegalName,
-                Environment = r.Key.Environment,
-                ApiType     = r.Key.ApiType
-            })
-            .OrderBy(r => r.LegalName)
-            .Take(take)
-            .ToListAsync(ct);
+            //
+        }
     }
 }
