@@ -1,22 +1,15 @@
- updatedXml = XmlNamespaceHelper.AddMissingNamespaces(requestXml);
-
- var binding = new BasicHttpBinding(BasicHttpSecurityMode.Transport)
- {
-     MaxReceivedMessageSize = 10_000_000
- };
- var address = new EndpointAddress(endpoint);
- MemberTransactionWsClient _client = new MemberTransactionWsClient(binding, address);
-
- SearchMemberRq inqRq = XmlConverter.Deserialize<SearchMemberRq>(updatedXml);
-
- searchForMemberResponseMessage responseMessage =
-     await _client.searchForMemberAsync(inqRq);
-
- SearchMemberRs result = responseMessage.SearchMemberRs;
-
- string xml = ObjectToXmlSerializer.ToXmlString(result);
- xml = ObjectToXmlSerializer.ToXmlString(result.MemberRec);
-
- xmlString = ObjectToXmlSerializer.ToXmlString(result);
-
- return xmlString?.ToString() ?? string.Empty;
+catch (FaultException faultEx)
+{
+    Console.WriteLine("SOAP Fault:");
+    Console.WriteLine(faultEx.Message);
+    Console.WriteLine(faultEx.Code);
+    Console.WriteLine(faultEx.Reason);
+    throw;
+}
+catch (CommunicationException ce)
+{
+    Console.WriteLine("Communication error:");
+    Console.WriteLine(ce.Message);
+    Console.WriteLine(ce.ToString());
+    throw;
+}
