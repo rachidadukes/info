@@ -1,0 +1,100 @@
+using MyApp.Contracts;
+using MyApp.Contracts.Api;
+using MyApp.Contracts.DTOs;
+using MyApp.Domain.Entities;
+using System.Net.Http.Json;
+
+namespace MyApp.Api;
+
+public sealed class MembersApi(HttpClient http) : IMembersApi
+{
+    private static string Base(string env)                        => $"api/members/{env}";
+    private static string Base(string selectedApiType, string env) => $"api/members/{selectedApiType}/{env}";
+
+    // -------------------------------------------------------------------------
+    // Profile
+    // -------------------------------------------------------------------------
+
+    public async Task<ResultWrapper<MemberProfileRespDTO>> GetProfileAsync(
+        string env,
+        string accessNumber,
+        CancellationToken ct = default)
+    {
+        var url = $"{Base(env)}/profile/{Uri.EscapeDataString(accessNumber)}";
+        return await http.GetFromJsonAsync<ResultWrapper<MemberProfileRespDTO>>(url, ct)
+               ?? new ResultWrapper<MemberProfileRespDTO>();
+    }
+
+    // -------------------------------------------------------------------------
+    // Search
+    // -------------------------------------------------------------------------
+
+    public async Task<ResultWrapper<MemberSearchRespDTO>> SearchByAccessAsync(
+        string selectedApiType,
+        string env,
+        string accessNumber,
+        CancellationToken ct = default)
+    {
+        var url = $"{Base(selectedApiType, env)}/search/by-access/{Uri.EscapeDataString(accessNumber)}";
+        return await http.GetFromJsonAsync<ResultWrapper<MemberSearchRespDTO>>(url, ct)
+               ?? new ResultWrapper<MemberSearchRespDTO>();
+    }
+
+    public async Task<ResultWrapper<MemberSearchRespDTO>> SearchByAccountAsync(
+        string selectedApiType,
+        string env,
+        string accountNumber,
+        string accountType,
+        CancellationToken ct = default)
+    {
+        var url = $"{Base(selectedApiType, env)}/search/by-account"
+                + $"?accountNumber={Uri.EscapeDataString(accountNumber)}"
+                + $"&accountType={Uri.EscapeDataString(accountType)}";
+        return await http.GetFromJsonAsync<ResultWrapper<MemberSearchRespDTO>>(url, ct)
+               ?? new ResultWrapper<MemberSearchRespDTO>();
+    }
+
+    public async Task<ResultWrapper<MemberSearchRespDTO>> SearchBySsnAsync(
+        string selectedApiType,
+        string env,
+        string ssn,
+        CancellationToken ct = default)
+    {
+        var url = $"{Base(selectedApiType, env)}/search/by-ssn/{Uri.EscapeDataString(ssn)}";
+        return await http.GetFromJsonAsync<ResultWrapper<MemberSearchRespDTO>>(url, ct)
+               ?? new ResultWrapper<MemberSearchRespDTO>();
+    }
+
+    public async Task<ResultWrapper<MemberSearchRespDTO>> SearchByMemberNameAsync(
+        string selectedApiType,
+        string env,
+        string lastName,
+        string? firstName,
+        CancellationToken ct = default)
+    {
+        var url = $"{Base(selectedApiType, env)}/search/by-lastname/{Uri.EscapeDataString(lastName)}"
+                + $"?firstName={Uri.EscapeDataString(firstName ?? string.Empty)}";
+        return await http.GetFromJsonAsync<ResultWrapper<MemberSearchRespDTO>>(url, ct)
+               ?? new ResultWrapper<MemberSearchRespDTO>();
+    }
+
+    public async Task<ResultWrapper<MemberSearchRespDTO>> SearchByBusinessNameAsync(
+        string selectedApiType,
+        string env,
+        string businessName,
+        CancellationToken ct = default)
+    {
+        var url = $"{Base(selectedApiType, env)}/search/by-businessname/{Uri.EscapeDataString(businessName)}";
+        return await http.GetFromJsonAsync<ResultWrapper<MemberSearchRespDTO>>(url, ct)
+               ?? new ResultWrapper<MemberSearchRespDTO>();
+    }
+
+    public async Task<IReadOnlyList<HistoryModel>> GetHistoryAsync(
+        int take = 100,
+        CancellationToken ct = default)
+    {
+        var url = $"api/members/history?take={take}";
+        return await http.GetFromJsonAsync<List<HistoryModel>>(url, ct)
+               ?? new List<HistoryModel>();
+    }
+}
