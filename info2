@@ -1,15 +1,3 @@
-catch (FaultException faultEx)
-{
-    Console.WriteLine("SOAP Fault:");
-    Console.WriteLine(faultEx.Message);
-    Console.WriteLine(faultEx.Code);
-    Console.WriteLine(faultEx.Reason);
-    throw;
-}
-catch (CommunicationException ce)
-{
-    Console.WriteLine("Communication error:");
-    Console.WriteLine(ce.Message);
-    Console.WriteLine(ce.ToString());
-    throw;
-}
+var client = new MemberTransactionWsClient(
+    MemberTransactionWsClient.EndpointConfiguration.MemberTransactionPort,
+    endpoint);
