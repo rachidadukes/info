@@ -1,68 +1,9 @@
-using System.Text.RegularExpressions;
-using System.Xml.Linq;
-
-namespace MyApp.Integrations.Helpers
-{
-    public static class XmlNamespaceHelper
-    {
-        /// <summary>
-        /// Removes all XML namespace declarations and prefixes from a document so that
-        /// XmlSerializer can match elements by local name only (no namespace required on
-        /// the target class).
-        /// </summary>
-        public static string StripNamespaces(string xml)
-        {
-            try
-            {
-                var doc = XDocument.Parse(xml);
-
-                foreach (var element in doc.Descendants())
-                {
-                    // Keep only the local name, drop the namespace
-                    element.Name = element.Name.LocalName;
-
-                    // Remove xmlns="..." and xmlns:prefix="..." declarations
-                    element.Attributes()
-                           .Where(a => a.IsNamespaceDeclaration)
-                           .ToList()
-                           .ForEach(a => a.Remove());
-                }
-
-                return doc.ToString();
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine("===== StripNamespaces ERROR =====" + ex.Message);
-                return xml; // return original so the caller can decide what to do
-            }
-        }
-
-        public static string AddMissingNamespaces(string xml)
-        {
-            string errorXml = string.Empty;
-
-            try
-            {
-                const string ns = "http://schemas.navyfederal.org/2010/04/NFBranchExService";
-
-                xml = AddNamespacToTag(xml, "MsgRqHdr",        ns);
-                xml = AddNamespacToTag(xml, "SearchMemberInfo", ns);
-                return xml;
-            }
-            catch (Exception ex)
-            {
-                errorXml = "===== UNEXPECTED ERROR =====" + ex;
-                return errorXml;
-            }
-        }
-
-        private static string AddNamespacToTag(string xml, string tagName, string namespaceValue)
-        {
-            string pattern = $@"<{tagName}(?![^>]*\bxmlns=)([^>]*)>";
-            return Regex.Replace(
-                xml,
-                pattern,
-                $"<{tagName} xmlns=\"{namespaceValue}\"$1>");
-        }
-    }
-}
+CREATE TABLE IF NOT EXISTS History (
+    Id          INTEGER PRIMARY KEY AUTOINCREMENT,
+    XmlRequest  TEXT,
+    XmlResponse TEXT,
+    DateTimeUtc TEXT NOT NULL DEFAULT (datetime('now')),
+    Environment TEXT,
+    ApiType     TEXT,
+    Description TEXT
+);
