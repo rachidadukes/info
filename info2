@@ -1,9 +1,12 @@
-CREATE TABLE IF NOT EXISTS History (
-    Id          INTEGER PRIMARY KEY AUTOINCREMENT,
-    XmlRequest  TEXT,
-    XmlResponse TEXT,
-    DateTimeUtc TEXT NOT NULL DEFAULT (datetime('now')),
-    Environment TEXT,
-    ApiType     TEXT,
-    Description TEXT
-);
+namespace MyApp.Domain.Entities;
+
+public class History
+{
+    public int      Id          { get; set; }
+    public string?  XmlRequest  { get; set; }
+    public string?  XmlResponse { get; set; }
+    public DateTime DateTimeUtc { get; set; } = DateTime.UtcNow;
+    public string?  Environment { get; set; }
+    public string?  ApiType     { get; set; }
+    public string?  Description { get; set; }
+}
