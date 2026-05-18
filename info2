@@ -1,34 +1,51 @@
+namespace MyApp.Domain.Entities;
+
+public sealed class AccessAcctNumberModel
 {
-  "Logging": {
-    "LogLevel": {
-      "Default": "Information",
-      "Microsoft.AspNetCore": "Warning"
-    }
-  },
+    public long Id { get; set; }               
+    public string AccessNumber { get; set; } = "";
+    public string AccountNumber { get; set; } = "";
+    public string AccountType { get; set; } = "";
+    public string? Environment { get; set; }
+    public string? ApiType { get; set; }
+    public string? Comment { get; set; }
+}
+public class AccountsModel
+{
+    public int Id { get; set; }
+    public string? Environment { get; set; }
+    public string? ApiType { get; set; }
+    public string? AccountNumber { get; set; }
+    public string? AccountType { get; set; }
+}
+public class AccessNumModel
+{
+    public int Id { get; set; }
+    public string? Environment { get; set; }
+    public string? ApiType { get; set; }
+    public string? AccessNumber { get; set; }
+}
+public class SsnModel
+{
+    public int Id { get; set; }
+    public string? Environment { get; set; }
+    public string? ApiType { get; set; }
+    public string? SSN { get; set; }
+}
 
-  "ExternalApis": {
-    "Current": "UNIT",
-    "Services": {
-      "MemberProfile": {
-        "UNIT": { "BaseUrl": "https://unit-dpa-01-plt0.nfcutest.net:5502/NFBranchExService/MemberTransactionService/" },
-        "INTG": { "BaseUrl": "https://intg-dpa-lb.nfcutest.net:5502/NFBranchExService/MemberTransactionService/" }
-      },
-      "MemberSearch": {
-        "UNIT": {
-          "BaseUrl":    "https://unit-dpa-01-plt0.nfcutest.net:5502/NFBranchExService/MemberTransactionService/",
-          "NewBaseUrl": "https://swvdcdvencaej01.nfcu.net:8443/EncoreCore/api/Member/member-search"
-        },
-        "INTG": {
-          "BaseUrl":    "https://intg-dpa-lb.nfcutest.net:5502/NFBranchExService/MemberTransactionService/",
-          "NewBaseUrl": "https://TBD"
-        }
-      }
-    }
-  },
+public class MemberNameModel
+{
+    public int Id { get; set; }
+    public string? Environment { get; set; }
+    public string? ApiType { get; set; }
+    public string? LastName { get; set; }
+    public string? FirstName { get; set; }
+}
 
-  "ConnectionStrings": {
-    "Sqlite": "Data Source=AppData/SqliteAccounts.db"
-  },
-
-  "AllowedHosts": "*"
+public class BusinessNameModel
+{
+    public int Id { get; set; }
+    public string? Environment { get; set; }
+    public string? ApiType { get; set; }
+    public string? LegalName { get; set; }
 }
