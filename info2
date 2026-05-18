@@ -513,14 +513,14 @@
                 searchType.AccountNumber = selectedAccountNumber;
                 selectionMade = $"Account Number : {selectedAccountNumber}";
                 result = await MembersApi.SearchByAccountAsync(
-                    selectedEnvironment, selectedAccountNumber, selectedAccountType);
+                    selectedApiType, selectedEnvironment, selectedAccountNumber, selectedAccountType);
             }
             else if (!string.IsNullOrEmpty(selectedSSN) && searchSelection == 3)
             {
                 searchType.Type = "By SSN";
                 searchType.SSN = selectedSSN;
                 selectionMade = $"SSN : {selectedSSN}";
-                result = await MembersApi.SearchBySsnAsync(selectedEnvironment, selectedSSN);
+                result = await MembersApi.SearchBySsnAsync(selectedApiType, selectedEnvironment, selectedSSN);
             }
             else if ((!string.IsNullOrEmpty(selectedLastName) || !string.IsNullOrEmpty(selectedFirstName)) && searchSelection == 4)
             {
@@ -528,7 +528,7 @@
                 searchType.LastName = selectedLastName;
                 searchType.FirstName = selectedFirstName;
                 selectionMade = $"Member Name : {selectedFirstName} {selectedLastName}";
-                result = await MembersApi.SearchByMemberNameAsync(selectedEnvironment, selectedLastName, selectedFirstName);
+                result = await MembersApi.SearchByMemberNameAsync(selectedApiType, selectedEnvironment, selectedLastName, selectedFirstName);
 
             }
             else if (!string.IsNullOrEmpty(selectedBusinessName) && searchSelection == 5)
@@ -536,7 +536,7 @@
                 searchType.Type = "By Business Name";
                 searchType.BusinessName = selectedBusinessName;
                 selectionMade = $"Business Name : {selectedBusinessName}";
-                result = await MembersApi.SearchByBusinessNameAsync(selectedEnvironment, selectedBusinessName);
+                result = await MembersApi.SearchByBusinessNameAsync(selectedApiType, selectedEnvironment, selectedBusinessName);
             }
             else
             {
