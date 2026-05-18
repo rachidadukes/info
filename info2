@@ -1,12 +1,53 @@
-namespace MyApp.Domain.Entities;
 
-public class History
+using Microsoft.EntityFrameworkCore;
+using MyApp.Domain.Entities;
+
+namespace MyApp.Infrastructure.DataAccess
 {
-    public int      Id          { get; set; }
-    public string?  XmlRequest  { get; set; }
-    public string?  XmlResponse { get; set; }
-    public DateTime DateTimeUtc { get; set; } = DateTime.UtcNow;
-    public string?  Environment { get; set; }
-    public string?  ApiType     { get; set; }
-    public string?  Description { get; set; }
+    public class DbContextSQLite : DbContext
+    {
+        public DbContextSQLite(DbContextOptions<DbContextSQLite> options) : base(options) { }
+
+        public DbSet<AccessNumModel> AccessNumbers { get; set; }
+        public DbSet<AccountsModel> Accounts { get; set; }
+        public DbSet<SsnModel> SSNlist { get; set; }
+        public DbSet<MemberNameModel> MemberName { get; set; }
+
+        public DbSet<BusinessNameModel> BusinessName { get; set; }
+        public DbSet<History> History { get; set; }
+
+
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        {
+            modelBuilder.Entity<AccessNumModel>(entity =>
+            {
+                entity.ToTable("AccessNumbers");
+                entity.HasKey(e => e.Id);
+            });
+
+
+            modelBuilder.Entity<SsnModel>(entity =>
+            {
+                entity.ToTable("SSNlist");
+                entity.HasKey(e => e.Id);
+            });
+            modelBuilder.Entity<MemberNameModel>(entity =>
+            {
+                entity.ToTable("MemberName");
+                entity.HasKey(e => e.Id);
+            });
+
+            modelBuilder.Entity<BusinessNameModel>(entity =>
+            {
+                entity.ToTable("BusinessName");
+                entity.HasKey(e => e.Id);
+            });
+
+            modelBuilder.Entity<History>(entity =>
+            {
+                entity.ToTable("History");
+                entity.HasKey(e => e.Id);
+            });
+        }
+    }
 }
