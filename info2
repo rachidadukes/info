@@ -1,53 +1,34 @@
-using MyApp.Contracts.DTOs;
-
-namespace MyApp.Contracts.Api
 {
-    /// <summary>
-    /// Client contract for /api/members endpoints.
-    /// </summary>
-    public interface IMembersApi
-    {
-        // GET /api/members/{env}/profile/{accessNumber}
-        Task<ResultWrapper<MemberProfileRespDTO>> GetProfileAsync(
-            string env,
-            string accessNumber,
-            CancellationToken ct = default);
-
-        // GET /api/members/{selectedApiType}/{env}/search/by-access/{accessNumber}
-        Task<ResultWrapper<MemberSearchRespDTO>> SearchByAccessAsync(
-            string selectedApiType,
-            string env,
-            string accessNumber,
-            CancellationToken ct = default);
-
-        // GET /api/members/{selectedApiType}/{env}/search/by-account?accountNumber=...&accountType=...
-        Task<ResultWrapper<MemberSearchRespDTO>> SearchByAccountAsync(
-            string selectedApiType,
-            string env,
-            string accountNumber,
-            string accountType,
-            CancellationToken ct = default);
-
-        // GET /api/members/{selectedApiType}/{env}/search/by-ssn/{ssn}
-        Task<ResultWrapper<MemberSearchRespDTO>> SearchBySsnAsync(
-            string selectedApiType,
-            string env,
-            string ssn,
-            CancellationToken ct = default);
-
-        // GET /api/members/{selectedApiType}/{env}/search/by-lastname/{lastName}?firstName=...
-        Task<ResultWrapper<MemberSearchRespDTO>> SearchByMemberNameAsync(
-            string selectedApiType,
-            string env,
-            string lastName,
-            string? firstName,
-            CancellationToken ct = default);
-
-        // GET /api/members/{selectedApiType}/{env}/search/by-businessname/{businessName}
-        Task<ResultWrapper<MemberSearchRespDTO>> SearchByBusinessNameAsync(
-            string selectedApiType,
-            string env,
-            string businessName,
-            CancellationToken ct = default);
+  "Logging": {
+    "LogLevel": {
+      "Default": "Information",
+      "Microsoft.AspNetCore": "Warning"
     }
+  },
+
+  "ExternalApis": {
+    "Current": "UNIT",
+    "Services": {
+      "MemberProfile": {
+        "UNIT": { "BaseUrl": "https://unit-dpa-01-plt0.nfcutest.net:5502/NFBranchExService/MemberTransactionService/" },
+        "INTG": { "BaseUrl": "https://intg-dpa-lb.nfcutest.net:5502/NFBranchExService/MemberTransactionService/" }
+      },
+      "MemberSearch": {
+        "UNIT": {
+          "BaseUrl":    "https://unit-dpa-01-plt0.nfcutest.net:5502/NFBranchExService/MemberTransactionService/",
+          "NewBaseUrl": "https://swvdcdvencaej01.nfcu.net:8443/EncoreCore/api/Member/member-search"
+        },
+        "INTG": {
+          "BaseUrl":    "https://intg-dpa-lb.nfcutest.net:5502/NFBranchExService/MemberTransactionService/",
+          "NewBaseUrl": "https://TBD"
+        }
+      }
+    }
+  },
+
+  "ConnectionStrings": {
+    "Sqlite": "Data Source=AppData/SqliteAccounts.db"
+  },
+
+  "AllowedHosts": "*"
 }
