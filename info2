@@ -1,3 +1,413 @@
-var client = new MemberTransactionWsClient(
-    MemberTransactionWsClient.EndpointConfiguration.MemberTransactionPort,
-    endpoint);
+using MemberInqService;
+using MyApp.Application.Abstractions;
+using MyApp.ApplicationLayer.Mappers;
+using MyApp.Contracts;
+using MyApp.Contracts.DTOs;
+using MyApp.Contracts.Options;
+using MyApp.Integrations.Helpers;
+using System.ServiceModel;
+using System.Text;
+using System.Xml.Serialization;
+
+namespace MemberSearchLibrary
+{
+
+
+    public class MemberSearchRepository : IMemberSearchService
+    {
+       
+        private readonly MemberSearchXMLResponse _getResponse;
+        private readonly GenerateByAccessRequest _generateByAccessRq; 
+        private readonly GenerateByAcctRequest _generateByAcctRq;
+        private readonly GenerateBySSNRequest _generateBySSNRq;
+        private readonly GenerateByLastNameRequest _generateByLastNameRq;
+        private readonly GenerateByBusinessRequest _generateByBusinessRq;
+        private readonly IApiEndpointResolver _endpointResolver;
+
+
+        public MemberSearchRepository(MemberSearchXMLResponse getResponse, GenerateByAccessRequest generateByAccessRq,
+            GenerateByAcctRequest generateByAcctRq,
+            GenerateBySSNRequest generateBySSNRq,
+            GenerateByLastNameRequest generateByLastNameRq,
+            GenerateByBusinessRequest generateByBusinessRq,
+            IApiEndpointResolver endpointResolver) 
+        {
+            _getResponse = getResponse;
+            _generateByAccessRq = generateByAccessRq;
+            _generateByAcctRq = generateByAcctRq;
+            _generateBySSNRq = generateBySSNRq;
+            _generateByLastNameRq = generateByLastNameRq;
+            _generateByBusinessRq = generateByBusinessRq;
+            _endpointResolver = endpointResolver;
+
+
+        }
+
+        private static AppEnvironment ToEnv(string env) =>
+            string.Equals(env, "INTG", StringComparison.OrdinalIgnoreCase)
+                ? AppEnvironment.INTG
+                : AppEnvironment.UNIT;
+
+        private string ResolveEndpoint(string selectedApiType, string env)
+        {
+            if (selectedApiType == TypeValues.Endpoint.NewEndpoint)
+                return _endpointResolver.ResolveNew(ExternalService.MemberSearch, ToEnv(env)).AbsoluteUri;
+
+            return _endpointResolver.Resolve(ExternalService.MemberSearch, ToEnv(env)).AbsoluteUri;
+        }
+
+        public async Task<ResultWrapper<MemberSearchRespDTO>> GetMembersByAccessNumberAsync(string selectedApiType, string env, string AccessNumber
+            , CancellationToken ct = default)
+        {
+            string SoapXMLRequest;
+            string endpoint;           
+         
+           
+            try
+            {
+
+                endpoint = ResolveEndpoint(selectedApiType, env);
+                SoapXMLRequest = await _generateByAccessRq.GenerateSoapXMLrequestV2( AccessNumber);
+
+                ResultWrapper<MemberSearchRespDTO> searchMemberWrapper = await GetAllResponse( selectedApiType, SoapXMLRequest, endpoint);
+
+                return searchMemberWrapper;
+
+
+            }
+            catch (HttpRequestException ex)
+            {
+                return new ResultWrapper<MemberSearchRespDTO>
+                {
+                    IsSuccess = false,
+                    ErrorMessage = $"HTTP Error: {ex.Message}"
+                };
+            }
+           
+            catch (Exception ex)
+            {
+                return new ResultWrapper<MemberSearchRespDTO>
+                {
+                    IsSuccess = false,
+                    ErrorMessage = $"Unexpected Error: {ex.Message}"
+                };
+            }
+        }
+
+        public async Task<ResultWrapper<MemberSearchRespDTO>> GetMembersByAccountNumAsync(string selectedApiType, string env, 
+            string accountNumber, string accountType, CancellationToken ct = default)
+        {
+            string SoapXMLRequest = "";
+            string endpoint = "";
+            ResultWrapper<MemberSearchRespDTO> searchMember;
+          
+            try
+            {
+
+                endpoint = ResolveEndpoint(selectedApiType, env);
+                SoapXMLRequest = await _generateByAcctRq.GenerateSoapXMLrequest( accountNumber, accountType);
+                searchMember = await GetAllResponse( selectedApiType, SoapXMLRequest, endpoint );
+
+
+                return searchMember;
+
+            }
+            catch (HttpRequestException ex)
+            {
+                return new ResultWrapper<MemberSearchRespDTO>
+                {
+                    IsSuccess = false,
+                    ErrorMessage = $"HTTP Error: {ex.Message}"
+                };
+            }
+
+            catch (Exception ex)
+            {
+                return new ResultWrapper<MemberSearchRespDTO>
+                {
+                    IsSuccess = false,
+                    ErrorMessage = $"Unexpected Error: {ex.Message}"
+                };
+            }
+        }
+
+        public async Task<ResultWrapper<MemberSearchRespDTO>> GetMembersBySSNAsync(string selectedApiType, string env, string SSN
+            , CancellationToken ct = default)
+        {
+            string SoapXMLRequest = "";
+            string endpoint = "";
+            ResultWrapper<MemberSearchRespDTO> searchMember;
+
+            try
+            {
+
+                endpoint = ResolveEndpoint(selectedApiType, env);
+                SoapXMLRequest = await _generateBySSNRq.GenerateSoapXMLrequest(env,  SSN);
+                searchMember = await GetAllResponse( selectedApiType, SoapXMLRequest, endpoint);
+                return searchMember;
+
+            }
+            catch (HttpRequestException ex)
+            {
+                return new ResultWrapper<MemberSearchRespDTO>
+                {
+                    IsSuccess = false,
+                    ErrorMessage = $"HTTP Error: {ex.Message}"
+                };
+            }
+
+            catch (Exception ex)
+            {
+                return new ResultWrapper<MemberSearchRespDTO>
+                {
+                    IsSuccess = false,
+                    ErrorMessage = $"Unexpected Error: {ex.Message}"
+                };
+            }
+        }
+        public async Task<ResultWrapper<MemberSearchRespDTO>> GetMembersByNameAsync(string selectedApiType, string env,
+            string LastName, string firstName, CancellationToken ct = default)
+        {
+            string SoapXMLRequest = "";
+            string endpoint = "";
+            ResultWrapper<MemberSearchRespDTO> searchMember;
+
+            try
+            {
+
+                endpoint = ResolveEndpoint(selectedApiType, env);
+                SoapXMLRequest = await _generateByLastNameRq.GenerateSoapXMLrequest(LastName);
+                searchMember = await GetAllResponse( selectedApiType, SoapXMLRequest, endpoint);
+                return searchMember;
+
+            }
+            catch (HttpRequestException ex)
+            {
+                return new ResultWrapper<MemberSearchRespDTO>
+                {
+                    IsSuccess = false,
+                    ErrorMessage = $"HTTP Error: {ex.Message}"
+                };
+            }
+        }
+
+
+        public async Task<ResultWrapper<MemberSearchRespDTO>> GetMembersByBusinessAsync(string selectedApiType, string env,
+          string businessName, CancellationToken ct = default)
+        {
+            string SoapXMLRequest = "";
+            string endpoint = "";
+            ResultWrapper<MemberSearchRespDTO> searchMember;
+
+            try
+            {
+
+                endpoint = ResolveEndpoint(selectedApiType, env);
+                SoapXMLRequest = await _generateByBusinessRq.GenerateSoapXMLrequest(businessName);
+                searchMember = await GetAllResponse(selectedApiType, SoapXMLRequest, endpoint);
+                return searchMember;
+
+            }
+            catch (HttpRequestException ex)
+            {
+                return new ResultWrapper<MemberSearchRespDTO>
+                {
+                    IsSuccess = false,
+                    ErrorMessage = $"HTTP Error: {ex.Message}"
+                };
+            }
+        }
+
+        private async Task<ResultWrapper<MemberSearchRespDTO>> GetAllResponse(string selectedApiType, String SoapXMLRequest, string endpoint)
+        {
+            string cleanXMLResponse;
+            string originalXMLResponse = "";
+            StringReader? stringReader = null;
+            MyApp.Domain.SearchMemberRs? rootResponse = null;
+            MemberSearchRespDTO memberSearchSimplified;
+            try
+            {
+
+                var responseBody = await GetResponseAsync(SoapXMLRequest, endpoint, selectedApiType);
+                //originalXMLResponse = await
+                //    _getResponse.ReadXMLresponse(SoapXMLRequest, endpoint);
+                //cleanXMLResponse = await _getResponse.GenerateCleanXMLresponse(originalXMLResponse);
+
+                // For testing purposes, you can read the XML content from a file.
+                cleanXMLResponse = TestCleanResponseXMLContentString();
+
+                XmlSerializer serializer = new XmlSerializer(typeof(MyApp.Domain.SearchMemberRs));
+                stringReader = new StringReader(cleanXMLResponse);
+
+                rootResponse = (MyApp.Domain.SearchMemberRs)serializer.Deserialize(stringReader)!;
+              
+
+
+                if (rootResponse is not null)
+                {
+                    memberSearchSimplified = MemberEntityMapper.MapSearchMember(rootResponse);
+                    return new ResultWrapper<MemberSearchRespDTO>
+                    {
+                        IsSuccess = true,
+                        Data = memberSearchSimplified ?? new MemberSearchRespDTO()
+                    };
+                }
+                else
+                {
+                    return new ResultWrapper<MemberSearchRespDTO>
+                    {
+                        IsSuccess = false,
+                        ErrorMessage = "Failed to deserialize XML response."
+                    };
+                }
+
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("Error reading XML Response: " + ex.Message);
+                return new ResultWrapper<MemberSearchRespDTO>();
+            }
+            finally
+            {
+                stringReader?.Dispose();
+            }
+
+        }
+        public async Task<string> GetResponseAsync(string requestXml, string endpoint, string selectedApiType)
+        {
+            try
+            {
+                string responseXml;
+
+                if (selectedApiType == TypeValues.Endpoint.LegacyEndpoint)
+                    responseXml = await GetLegacyResponseAsync(requestXml, endpoint);
+                else
+                    responseXml = await GetNewResponse(endpoint, requestXml);
+
+                return responseXml;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("Error sending SOAP request: " + ex.Message);
+                return string.Empty;
+            }
+        }
+
+
+        private async Task<string> GetLegacyResponseAsync(string requestXml, string endpoint)
+        {
+            string errorXml = string.Empty;
+            string xmlString = string.Empty;
+            string updatedXml = string.Empty;
+
+            try
+            {
+                updatedXml = XmlNamespaceHelper.AddMissingNamespaces(requestXml);
+
+                var binding = new System.ServiceModel.BasicHttpBinding
+                {
+                    MaxBufferSize          = int.MaxValue,
+                    MaxReceivedMessageSize = int.MaxValue,
+                    ReaderQuotas           = System.Xml.XmlDictionaryReaderQuotas.Max,
+                    AllowCookies           = true,
+                    Security               = { Mode = System.ServiceModel.BasicHttpSecurityMode.Transport }
+                };
+                var address = new EndpointAddress(endpoint);
+                MemberTransactionWsClient _client = new MemberTransactionWsClient(binding, address);
+
+                SearchMemberRq inqRq = XmlConverter.Deserialize<SearchMemberRq>(updatedXml);
+
+                searchForMemberResponseMessage responseMessage =
+                    await _client.searchForMemberAsync(inqRq);
+
+                SearchMemberRs result = responseMessage.SearchMemberRs;
+
+                string xml = ObjectToXmlSerializer.ToXmlString(result);
+                xml = ObjectToXmlSerializer.ToXmlString(result.MemberRec);
+
+                xmlString = ObjectToXmlSerializer.ToXmlString(result);
+
+                return xmlString?.ToString() ?? string.Empty;
+            }
+
+            catch (InvalidOperationException ex)
+    when (ex.InnerException is System.Xml.XmlException xmlEx)
+            {
+                errorXml = "===== XML DESERIALIZATION ERROR =====";
+                errorXml = $"Message  : {xmlEx.Message}";
+                errorXml = $"Line     : {xmlEx.LineNumber}";
+                errorXml = $"Position : {xmlEx.LinePosition}";
+                Console.WriteLine(errorXml);
+                return errorXml;
+            }
+            catch (CommunicationException ce)
+            {
+                errorXml = "===== COMMUNICATION ERROR =====" + ce.Message;
+                Console.WriteLine(errorXml);
+                return errorXml;
+            }
+            catch (Exception ex)
+            {
+                errorXml = "===== UNEXPECTED ERROR =====" + ex;
+                Console.WriteLine(errorXml);
+                return errorXml;
+            }
+        }
+         
+        private async Task<string> GetNewResponse(string url, string sendMessage)
+        {
+            string mainResponse;
+            string errorXml = string.Empty;
+            HttpClient httpClient = new HttpClient();
+
+            try
+            {
+                var request = new HttpRequestMessage(HttpMethod.Post, url);
+                var content = new StringContent(sendMessage ?? "", null, "application/xml");
+
+                request.Content = new StringContent(
+                    sendMessage ?? "",
+                    Encoding.UTF8,
+                    "application/xml"
+                );
+
+                var response = await httpClient.SendAsync(request);
+                response.EnsureSuccessStatusCode();
+                var responseXMLContent = await response.Content.ReadAsStringAsync();
+                mainResponse = responseXMLContent;
+                return mainResponse;
+            }
+            catch (InvalidOperationException ex) when (ex.InnerException is System.Xml.XmlException xmlEx)
+            {
+                errorXml = "===== XML DESERIALIZATION ERROR =====";
+                errorXml = $"Message  : {xmlEx.Message}";
+                errorXml = $"Line     : {xmlEx.LineNumber}";
+                errorXml = $"Position : {xmlEx.LinePosition}";
+                Console.WriteLine(errorXml);
+                return errorXml;
+            }
+            catch (CommunicationException ce)
+            {
+                errorXml = "===== COMMUNICATION ERROR =====" + ce.Message;
+                Console.WriteLine(errorXml);
+                return errorXml;
+            }
+        }
+        private static string TestCleanResponseXMLContentString()
+        {
+            const string fileName = "MembersListResponse1.txt";
+            var path = Path.Combine(AppContext.BaseDirectory,
+                                    "SampleData", "MemberSearchRespSample", fileName);
+
+            if (!File.Exists(path))
+                throw new FileNotFoundException($"Sample file not found: {path}");
+
+            return File.ReadAllText(path); 
+        }
+
+
+
+
+
+    }
+}
