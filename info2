@@ -1,1 +1,140 @@
 
+using MyApp.Application.Abstractions;
+using MyApp.ApplicationLayer.Mappers;
+using MyApp.Contracts;
+using MyApp.Contracts.DTOs;
+using MyApp.Contracts.Options;
+using MyApp.Domain;
+using MyApp.Domain.Entities;
+using MyApp.ReferenceData;
+using System.Xml.Serialization;
+
+namespace MemberProfileLibrary
+{
+
+    public class MemberProfileRepository : IMemberProfileService
+    {
+
+
+        private readonly MemProfileXMLResponse _parseResponse;
+        private readonly GenerateMemProfileRequest _generateMemberProfileRq;
+        private readonly IApiEndpointResolver _endpointResolver;
+        private readonly IHistoryService _historyService;
+
+        public MemberProfileRepository(MemProfileXMLResponse parseResponse,
+            GenerateMemProfileRequest generateMemberProfileRq,
+            IApiEndpointResolver endpointResolver,
+            IHistoryService historyService)
+        {
+            _parseResponse = parseResponse;
+            _generateMemberProfileRq = generateMemberProfileRq;
+            _endpointResolver = endpointResolver;
+            _historyService = historyService;
+        }
+        private static AppEnvironment ToEnv(string env) =>
+        string.Equals(env, "INTG", StringComparison.OrdinalIgnoreCase)
+            ? AppEnvironment.INTG
+            : AppEnvironment.UNIT;
+
+        public async Task<ResultWrapper<MemberProfileRespDTO>> GetMemberProfileAsync(string env, string AccessNumber, CancellationToken ct = default)
+        {
+            string SoapXMLRequest = string.Empty;
+            string endpoint;
+            string cleanXMLResponse;
+
+            MemberProfileRs? rootResponse;
+            MemberProfileRespDTO profileMemberSimplified;
+            StringReader? stringReader = null;
+
+            try
+            {
+                var baseUri = _endpointResolver.Resolve(ExternalService.MemberProfile, ToEnv(env));
+                endpoint = baseUri.AbsoluteUri;
+                SoapXMLRequest = await _generateMemberProfileRq.GenerateSoapXMLrequest(env, AccessNumber);
+
+                //originalXMLResponse = await _parseResponse.ReadXMLresponse(SoapXMLRequest, endpoint);
+                //cleanXMLResponse = await _parseResponse.GenerateCleanXMLresponse(originalXMLResponse);
+
+                // For testing purposes, you can read the XML content from a file.
+                cleanXMLResponse = TestCleanResponseXMLContentString();
+
+                XmlSerializer serializer = new XmlSerializer(typeof(MemberProfileRs));
+                stringReader = new StringReader(cleanXMLResponse);
+                rootResponse = (MemberProfileRs)serializer.Deserialize(stringReader)!;
+
+                if (rootResponse is not null)
+                {
+                    profileMemberSimplified = MemberEntityMapper.MapMemberProfile(rootResponse);
+                    return new ResultWrapper<MemberProfileRespDTO>
+                    {
+                        IsSuccess = true,
+                        Data = profileMemberSimplified ?? new MemberProfileRespDTO()
+                    };
+                }
+                else
+                {
+                    return new ResultWrapper<MemberProfileRespDTO>
+                    {
+                        IsSuccess = false,
+                        ErrorMessage = "Failed to deserialize XML response."
+                    };
+                }
+            }
+            catch (HttpRequestException ex)
+            {
+                return new ResultWrapper<MemberProfileRespDTO>
+                {
+                    IsSuccess = false,
+                    ErrorMessage = $"HTTP Error: {ex.Message}"
+                };
+            }
+            catch (Exception ex)
+            {
+                return new ResultWrapper<MemberProfileRespDTO>
+                {
+                    IsSuccess = false,
+                    ErrorMessage = $"Unexpected Error: {ex.Message}"
+                };
+            }
+            finally
+            {
+                stringReader?.Dispose();
+
+                // Save history for every Profile call
+                await _historyService.SaveAsync(new HistoryModel
+                {
+                    XmlRequest  = SoapXMLRequest,
+                    XmlResponse = string.Empty,   // Profile uses sample file; swap with real response when live
+                    DateTimeUtc = DateTime.UtcNow,
+                    Environment = env,
+                    ApiType     = "L",
+                    Description = $"Member Profile by Access Number: {AccessNumber}"
+                });
+            }
+
+        }
+
+
+
+        private static string TestCleanResponseXMLContentString()
+        {
+            const string fileName = "MemberProfileXMLResponse1.txt";
+            var path = Path.Combine(AppContext.BaseDirectory,
+                                    "SampleData", "MemberProfileRespSample", fileName);
+
+            if (!File.Exists(path))
+                throw new FileNotFoundException($"Sample file not found: {path}");
+
+            return File.ReadAllText(path); // or await File.ReadAllTextAsync(path, ct)
+        }
+
+
+
+    }
+
+
+}
+
+
+
+
