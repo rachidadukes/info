@@ -1,1 +1,41 @@
 
+   catch (InvalidOperationException ex)
+   {
+       return new ResultWrapper<MemberProfileRespDTO>
+       {
+           IsSuccess = false,
+           ErrorMessage =      $"XML Deserialization Error: {ex.InnerException?.Message ?? ex.Message}"
+       };
+   }
+   catch (FaultException ex)
+   {
+       return new ResultWrapper<MemberProfileRespDTO>
+       {
+           IsSuccess = false,
+           ErrorMessage =    $"SOAP Fault: {ex.Message}"
+       };
+   }
+   catch (CommunicationException ex)
+   {
+       return new ResultWrapper<MemberProfileRespDTO>
+       {
+           IsSuccess = false,
+           ErrorMessage =    $"Communication Error: {ex.Message}"
+       };
+   }
+   catch (HttpRequestException ex)
+   {
+       return new ResultWrapper<MemberProfileRespDTO>
+       {
+           IsSuccess = false,
+           ErrorMessage =    $"HTTP Error: {ex.Message}"
+       };
+   }
+   catch (Exception ex)
+   {
+       return new ResultWrapper<MemberProfileRespDTO>
+       {
+           IsSuccess = false,
+           ErrorMessage =    $"Unexpected Error: {ex.Message}"
+       };
+   }
