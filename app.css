@@ -1,0 +1,411 @@
+/* ============================================
+   MemberSearch App — Global Styles
+   ============================================ */
+
+/* ----- CSS Variables / Design Tokens ----- */
+:root {
+    --color-bg:             #1e2130;
+    --color-bg-elevated:    #252840;
+    --color-bg-card:        #2c2f4a;
+    --color-bg-hover:       #333760;
+    --color-bg-input:       #23263d;
+    --color-border:         #3d4166;
+    --color-border-subtle:  #31345a;
+    --color-text:           #dde1f5;
+    --color-text-secondary: #a0a7cc;
+    --color-text-muted:     #6b729e;
+    --color-primary:        #8b7cf8;
+    --color-primary-hover:  #a594ff;
+    --color-primary-subtle: rgba(139, 124, 248, 0.15);
+    --color-accent:         #38bdf8;
+    --color-success:        #34d399;
+    --color-danger:         #f87171;
+    --color-danger-hover:   #ef4444;
+    --color-warning:        #fbbf24;
+    --gradient-primary:     linear-gradient(135deg, #8b7cf8, #38bdf8);
+    --shadow-sm:            0 1px 3px rgba(0, 0, 0, 0.25);
+    --shadow-md:            0 4px 16px rgba(0, 0, 0, 0.3);
+    --shadow-lg:            0 8px 32px rgba(0, 0, 0, 0.4);
+    --shadow-glow:          0 0 24px rgba(139, 124, 248, 0.2);
+    --radius-sm:            6px;
+    --radius-md:            10px;
+    --radius-lg:            16px;
+    --font-family:          'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    --sidebar-width:        260px;
+    --topbar-height:        60px;
+    --transition:           0.2s ease;
+}
+
+/* ----- Reset & Base ----- */
+*, *::before, *::after {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+html {
+    font-size: 16px;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+    font-family: var(--font-family);
+    background: var(--color-bg);
+    color: var(--color-text);
+    line-height: 1.6;
+    min-height: 100vh;
+}
+
+a {
+    color: var(--color-primary);
+    text-decoration: none;
+    transition: color var(--transition);
+}
+
+a:hover {
+    color: var(--color-primary-hover);
+}
+
+/* ----- Scrollbar ----- */
+::-webkit-scrollbar       { width: 6px; }
+::-webkit-scrollbar-track { background: var(--color-bg); }
+::-webkit-scrollbar-thumb { background: var(--color-border); border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover { background: var(--color-text-muted); }
+
+/* ============================================
+   APP SHELL
+   ============================================ */
+
+.app-shell {
+    display: flex;
+    min-height: 100vh;
+}
+
+/* Sidebar */
+.app-sidebar {
+    width: var(--sidebar-width);
+    background: var(--color-bg-elevated);
+    border-right: 1px solid var(--color-border-subtle);
+    position: fixed;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    display: flex;
+    flex-direction: column;
+    z-index: 50;
+    overflow-y: auto;
+}
+
+.sidebar-brand {
+    padding: 1.4rem 1.25rem;
+    border-bottom: 1px solid var(--color-border-subtle);
+    background: linear-gradient(135deg, rgba(139,124,248,0.1), rgba(56,189,248,0.05));
+}
+
+.brand-link {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    color: var(--color-text);
+    font-weight: 700;
+    font-size: 1.05rem;
+    letter-spacing: -0.01em;
+}
+
+.brand-link:hover {
+    color: var(--color-text);
+}
+
+.brand-icon {
+    font-size: 1.3rem;
+}
+
+.sidebar-nav {
+    flex: 1;
+    padding: 1.25rem 0;
+}
+
+.nav-section {
+    margin-bottom: 0.5rem;
+}
+
+.nav-section-title {
+    display: block;
+    padding: 0 1.25rem;
+    margin-bottom: 0.5rem;
+    font-size: 0.68rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--color-text-muted);
+}
+
+.sidebar-link {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.65rem 1.25rem;
+    color: var(--color-text-secondary);
+    font-size: 0.875rem;
+    font-weight: 500;
+    transition: all var(--transition);
+    border-left: 3px solid transparent;
+    border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+    margin-right: 0.75rem;
+}
+
+.sidebar-link:hover {
+    color: var(--color-text);
+    background: var(--color-bg-hover);
+    border-left-color: var(--color-border);
+}
+
+.sidebar-link.active {
+    color: var(--color-primary-hover);
+    background: var(--color-primary-subtle);
+    border-left-color: var(--color-primary);
+    font-weight: 600;
+}
+
+.nav-icon {
+    font-size: 1rem;
+    width: 1.25rem;
+    text-align: center;
+    flex-shrink: 0;
+}
+
+/* Main Content Area */
+.app-main {
+    flex: 1;
+    margin-left: var(--sidebar-width);
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+    background: var(--color-bg);
+}
+
+/* Topbar */
+.app-topbar {
+    height: var(--topbar-height);
+    background: var(--color-bg-elevated);
+    border-bottom: 1px solid var(--color-border-subtle);
+    position: sticky;
+    top: 0;
+    z-index: 40;
+    display: flex;
+    align-items: center;
+    padding: 0 2rem;
+    box-shadow: var(--shadow-sm);
+}
+
+.topbar-title {
+    font-size: 0.95rem;
+    font-weight: 600;
+    background: var(--gradient-primary);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    letter-spacing: 0.01em;
+}
+
+/* App Content */
+.app-content {
+    flex: 1;
+    padding: 1.75rem 2rem;
+}
+
+/* ============================================
+   PAGE HEADERS
+   ============================================ */
+
+.page-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    margin-bottom: 1.5rem;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+
+.page-header h1 {
+    font-size: 1.5rem;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    color: var(--color-text);
+}
+
+.page-subtitle {
+    color: var(--color-text-secondary);
+    font-size: 0.875rem;
+    margin-top: 0.2rem;
+}
+
+/* ============================================
+   EMPTY & LOADING STATES
+   ============================================ */
+
+.empty-state {
+    text-align: center;
+    padding: 4rem 2rem;
+    color: var(--color-text-secondary);
+}
+
+.loading-spinner {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 4rem;
+    gap: 1rem;
+}
+
+.spinner {
+    width: 36px;
+    height: 36px;
+    border: 3px solid var(--color-border);
+    border-top-color: var(--color-primary);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+.loading-spinner p {
+    color: var(--color-text-muted);
+    font-size: 0.875rem;
+}
+
+/* ============================================
+   RADZEN DIALOG — DARK THEME OVERRIDE
+   ============================================ */
+
+.rz-dialog-wrapper {
+    background: rgba(10, 12, 24, 0.75) !important;
+    backdrop-filter: blur(6px);
+}
+
+.rz-dialog {
+    background: var(--color-bg-card) !important;
+    border: 1px solid var(--color-border) !important;
+    border-radius: var(--radius-lg) !important;
+    box-shadow: var(--shadow-lg) !important;
+    color: var(--color-text) !important;
+}
+
+.rz-dialog-titlebar {
+    background: var(--color-bg-elevated) !important;
+    border-bottom: 1px solid var(--color-border-subtle) !important;
+    border-radius: var(--radius-lg) var(--radius-lg) 0 0 !important;
+    color: var(--color-text) !important;
+    padding: 1rem 1.25rem !important;
+}
+
+.rz-dialog-title {
+    color: var(--color-text) !important;
+    font-family: var(--font-family) !important;
+    font-weight: 700 !important;
+    font-size: 1rem !important;
+}
+
+.rz-dialog-close-button,
+.rz-dialog-titlebar .rz-button {
+    color: var(--color-text-muted) !important;
+    background: transparent !important;
+    border: none !important;
+}
+
+.rz-dialog-close-button:hover,
+.rz-dialog-titlebar .rz-button:hover {
+    color: var(--color-text) !important;
+    background: var(--color-bg-hover) !important;
+}
+
+.rz-dialog-content {
+    background: var(--color-bg-card) !important;
+    color: var(--color-text) !important;
+    padding: 1.25rem !important;
+}
+
+/* XML pre block inside dialog */
+.rz-dialog-content pre {
+    background: var(--color-bg-elevated) !important;
+    color: var(--color-accent) !important;
+    border: 1px solid var(--color-border-subtle) !important;
+    border-radius: var(--radius-md) !important;
+    padding: 1rem !important;
+    font-size: 0.78rem !important;
+    line-height: 1.6 !important;
+    overflow: auto !important;
+}
+
+/* ============================================
+   BLAZOR FRAMEWORK
+   ============================================ */
+
+h1:focus {
+    outline: none;
+}
+
+.valid.modified:not([type=checkbox]) {
+    outline: 1px solid var(--color-success);
+}
+
+.invalid {
+    border-color: var(--color-danger) !important;
+}
+
+.validation-message {
+    color: var(--color-danger);
+    font-size: 0.8rem;
+}
+
+#blazor-error-ui {
+    background: var(--color-danger);
+    color: white;
+    padding: 0.5rem 1rem;
+    text-align: center;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 9999;
+    display: none;
+}
+
+#blazor-error-ui .dismiss {
+    cursor: pointer;
+    margin-left: 1rem;
+}
+
+#blazor-error-ui .reload {
+    color: white;
+    text-decoration: underline;
+}
+
+.blazor-error-boundary {
+    background: var(--color-danger);
+    padding: 1rem;
+    color: white;
+    border-radius: var(--radius-sm);
+}
+
+.blazor-error-boundary::after {
+    content: "An error has occurred.";
+}
+
+.darker-border-checkbox.form-check-input {
+    border-color: #929292;
+}
+
+/* ============================================
+   RESPONSIVE
+   ============================================ */
+
+@media (max-width: 768px) {
+    .app-sidebar  { display: none; }
+    .app-main     { margin-left: 0; }
+    .app-content  { padding: 1rem; }
+    .page-header  { flex-direction: column; }
+}
