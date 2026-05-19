@@ -1,5 +1,89 @@
-   <div class="nav-item px-3">
-       <NavLink class="nav-link" href="history">
-           <span class="bi bi-clock-history" aria-hidden="true"></span> History
-       </NavLink>
-   </div>
+@page "/history"
+@using MyApp.Contracts.Api
+@using MyApp.Domain.Entities
+@inject IMembersApi MembersApi
+
+<PageTitle>Search History</PageTitle>
+
+<RadzenStack Orientation="Orientation.Vertical" Gap="1rem" Class="rz-p-4">
+
+    <RadzenText TextStyle="TextStyle.H5">Search History</RadzenText>
+
+    <RadzenButton Text="Refresh" Icon="refresh" ButtonStyle="ButtonStyle.Secondary"
+                  Click="LoadHistory" class="rz-mb-3" Style="width:fit-content" />
+
+    @if (_loading)
+    {
+        <RadzenProgressBarCircular ShowValue="false" Mode="ProgressBarMode.Indeterminate" />
+    }
+    else
+    {
+        <RadzenDataGrid Data="_history" TItem="HistoryModel" AllowPaging="true" PageSize="20"
+                        AllowSorting="true" AllowFiltering="true"
+                        FilterMode="FilterMode.SimpleWithMenu"
+                        AllowColumnResize="true"
+                        Style="width:100%">
+            <Columns>
+
+                <RadzenDataGridColumn TItem="HistoryModel" Property="Id" Title="Id" Width="70px" />
+
+                <RadzenDataGridColumn TItem="HistoryModel" Property="DateTimeUtc" Title="Date / Time (UTC)"
+                                      Width="180px" FormatString="{0:yyyy-MM-dd HH:mm:ss}" />
+
+                <RadzenDataGridColumn TItem="HistoryModel" Property="Environment" Title="Env" Width="80px" />
+
+                <RadzenDataGridColumn TItem="HistoryModel" Property="ApiType" Title="API" Width="70px" />
+
+                <RadzenDataGridColumn TItem="HistoryModel" Property="Description" Title="Description" Width="260px" />
+
+                <RadzenDataGridColumn TItem="HistoryModel" Property="XmlRequest" Title="XML Request">
+                    <Template Context="row">
+                        <RadzenButton Text="View" ButtonStyle="ButtonStyle.Light" Size="ButtonSize.Small"
+                                      Click="@(() => ShowXmlRequest(row.XmlRequest))" />
+                    </Template>
+                </RadzenDataGridColumn>
+
+                <RadzenDataGridColumn TItem="HistoryModel" Property="XmlResponse" Title="XML Response">
+                    <Template Context="row">
+                        <RadzenButton Text="View" ButtonStyle="ButtonStyle.Light" Size="ButtonSize.Small"
+                                      Click="@(() => ShowXmlResponse(row.XmlResponse))" />
+                    </Template>
+                </RadzenDataGridColumn>
+
+            </Columns>
+        </RadzenDataGrid>
+    }
+
+</RadzenStack>
+
+@* Dialog to display XML *@
+<RadzenDialog />
+
+@code {
+    private IReadOnlyList<HistoryModel> _history = [];
+    private bool _loading = true;
+
+    [Inject] private DialogService DialogService { get; set; } = default!;
+
+    protected override async Task OnInitializedAsync() => await LoadHistory();
+
+    private async Task LoadHistory()
+    {
+        _loading = true;
+        _history = await MembersApi.GetHistoryAsync(take: 200);
+        _loading = false;
+    }
+
+    private Task ShowXmlRequest(string? xml)  => ShowXml(xml, "XML Request");
+    private Task ShowXmlResponse(string? xml) => ShowXml(xml, "XML Response");
+
+    private async Task ShowXml(string? xml, string title)
+    {
+        await DialogService.OpenAsync(title, ds =>
+            @<RadzenStack Orientation="Orientation.Vertical" Gap="0.5rem" Style="min-width:600px;max-height:500px;overflow:auto">
+                <pre style="white-space:pre-wrap;word-break:break-all;font-size:0.8rem">@xml</pre>
+                <RadzenButton Text="Close" Click="@(() => ds.Close())" ButtonStyle="ButtonStyle.Secondary" />
+            </RadzenStack>
+        );
+    }
+}
