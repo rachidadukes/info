@@ -1,59 +1,11 @@
-using Microsoft.EntityFrameworkCore;
 using MyApp.Domain.Entities;
-using MyApp.Infrastructure.DataAccess;
 
 namespace MyApp.ReferenceData;
 
-public sealed class HistoryService : IHistoryService
+public interface IHistoryService
 {
-    private readonly IDbContextFactory<DbContextSQLite> _dbFactory;
-
-    public HistoryService(IDbContextFactory<DbContextSQLite> dbFactory)
-    {
-        _dbFactory = dbFactory;
-    }
-
-    public async Task SaveAsync(HistoryModel entry, CancellationToken ct = default)
-    {
-        await using var db = await _dbFactory.CreateDbContextAsync(ct);
-        db.History.Add(entry);
-        await db.SaveChangesAsync(ct);
-    }
-
-    public async Task<IReadOnlyList<HistoryModel>> GetAllAsync(int take = 100, CancellationToken ct = default)
-    {
-        await using var db = await _dbFactory.CreateDbContextAsync(ct);
-        return await db.History
-            .AsNoTracking()
-            .OrderByDescending(h => h.DateTimeUtc)
-            .Take(take)
-            .ToListAsync(ct);
-    }
-
-    public async Task<IReadOnlyList<HistoryGroupModel>> GetGroupsAsync(CancellationToken ct = default)
-    {
-        await using var db = await _dbFactory.CreateDbContextAsync(ct);
-        return await db.History
-            .AsNoTracking()
-            .GroupBy(h => new { h.Description, h.Environment })
-            .Select(g => new HistoryGroupModel
-            {
-                Description = g.Key.Description,
-                Environment = g.Key.Environment,
-                Count       = g.Count(),
-                LastRun     = g.Max(h => h.DateTimeUtc)
-            })
-            .OrderByDescending(g => g.LastRun)
-            .ToListAsync(ct);
-    }
-
-    public async Task<IReadOnlyList<HistoryModel>> GetByGroupAsync(string description, string environment, CancellationToken ct = default)
-    {
-        await using var db = await _dbFactory.CreateDbContextAsync(ct);
-        return await db.History
-            .AsNoTracking()
-            .Where(h => h.Description == description && h.Environment == environment)
-            .OrderBy(h => h.DateTimeUtc)
-            .ToListAsync(ct);
-    }
+    Task SaveAsync(HistoryModel entry, CancellationToken ct = default);
+    Task<IReadOnlyList<HistoryModel>> GetAllAsync(int take = 100, CancellationToken ct = default);
+    Task<IReadOnlyList<HistoryGroupModel>> GetGroupsAsync(CancellationToken ct = default);
+    Task<IReadOnlyList<HistoryModel>> GetByGroupAsync(string description, string environment, CancellationToken ct = default);
 }
