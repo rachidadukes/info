@@ -1,0 +1,363 @@
+@page "/comparison"
+@using MyApp.Contracts.Api
+@using MyApp.Domain.Entities
+@inject IMembersApi MembersApi
+
+<PageTitle>Response Comparison</PageTitle>
+
+<RadzenStack Orientation="Orientation.Vertical" Gap="1.25rem" Class="rz-p-4">
+
+    <RadzenText TextStyle="TextStyle.H5">Response Comparison</RadzenText>
+    <RadzenText TextStyle="TextStyle.Body2" Style="color:var(--color-text-secondary)">
+        Select a search group to see all its responses, then pick exactly two rows to compare them.
+    </RadzenText>
+
+    @if (_loadingGroups)
+    {
+        <RadzenProgressBarCircular ShowValue="false" Mode="ProgressBarMode.Indeterminate" />
+    }
+    else
+    {
+        <!-- Groups Grid -->
+        <RadzenDataGrid Data="_groups" TItem="HistoryGroupModel"
+                        AllowSorting="true" AllowFiltering="true"
+                        FilterMode="FilterMode.SimpleWithMenu"
+                        AllowColumnResize="true"
+                        RowSelect="@OnGroupSelected"
+                        Style="width:100%;cursor:pointer">
+            <Columns>
+                <RadzenDataGridColumn TItem="HistoryGroupModel" Property="Description" Title="Search" />
+                <RadzenDataGridColumn TItem="HistoryGroupModel" Property="Environment" Title="Env"      Width="80px" />
+                <RadzenDataGridColumn TItem="HistoryGroupModel" Property="Count"       Title="Runs"     Width="75px" />
+                <RadzenDataGridColumn TItem="HistoryGroupModel" Property="LastRun"     Title="Last Run"
+                                      Width="190px" FormatString="{0:yyyy-MM-dd HH:mm:ss}" />
+            </Columns>
+        </RadzenDataGrid>
+    }
+
+    @if (_selectedGroup is not null)
+    {
+        <!-- Selected group title -->
+        <RadzenText TextStyle="TextStyle.Subtitle1" Style="color:var(--color-primary-hover);font-weight:700">
+            📂 @_selectedGroup.Description — @_selectedGroup.Environment
+        </RadzenText>
+
+        @if (_loadingRecords)
+        {
+            <RadzenProgressBarCircular ShowValue="false" Mode="ProgressBarMode.Indeterminate" />
+        }
+        else
+        {
+            <!-- Hint -->
+            <RadzenText TextStyle="TextStyle.Caption" Style="color:var(--color-text-muted)">
+                @if (_selectedRecords.Count == 0)
+                {
+                    <span>☑ Select two rows below to compare their responses.</span>
+                }
+                else if (_selectedRecords.Count == 1)
+                {
+                    <span>☑ One row selected — select one more to compare.</span>
+                }
+                else
+                {
+                    <span style="color:var(--color-success)">✔ Two rows selected — comparison shown below. Select a different row to swap the oldest out.</span>
+                }
+            </RadzenText>
+
+            <!-- ── Second grid: all responses for the selected group ── -->
+            <RadzenDataGrid Data="_groupRecords" TItem="HistoryModel"
+                            AllowSorting="true" AllowColumnResize="true"
+                            RowClick="@OnRecordRowClick"
+                            RowRender="@OnRecordRowRender"
+                            Style="width:100%;cursor:pointer">
+                <Columns>
+
+                    <!-- Selection indicator -->
+                    <RadzenDataGridColumn TItem="HistoryModel" Width="36px" Sortable="false" Filterable="false" Title="">
+                        <Template Context="row">
+                            @if (_selectedRecords.Contains(row))
+                            {
+                                <span style="display:inline-block;width:12px;height:12px;border-radius:50%;
+                                             background:var(--color-primary);box-shadow:0 0 6px var(--color-primary)">
+                                </span>
+                            }
+                        </Template>
+                    </RadzenDataGridColumn>
+
+                    <RadzenDataGridColumn TItem="HistoryModel" Property="Id" Title="Id" Width="70px" />
+
+                    <RadzenDataGridColumn TItem="HistoryModel" Property="ApiType" Title="API Type" Width="100px">
+                        <Template Context="row">
+                            @if (row.ApiType == "L")
+                            {
+                                <span style="color:#f87171;font-weight:700">L — Legacy</span>
+                            }
+                            else if (row.ApiType == "N")
+                            {
+                                <span style="color:#34d399;font-weight:700">N — New</span>
+                            }
+                            else
+                            {
+                                <span>@row.ApiType</span>
+                            }
+                        </Template>
+                    </RadzenDataGridColumn>
+
+                    <RadzenDataGridColumn TItem="HistoryModel" Property="DateTimeUtc" Title="Date / Time (UTC)" Width="190px">
+                        <Template Context="row">
+                            <span style="font-size:0.85rem;color:var(--color-text-secondary)">
+                                @row.DateTimeUtc.ToString("yyyy-MM-dd HH:mm:ss")
+                            </span>
+                        </Template>
+                    </RadzenDataGridColumn>
+
+                    <RadzenDataGridColumn TItem="HistoryModel" Property="XmlResponse" Title="Response">
+                        <Template Context="row">
+                            <span style="font-family:monospace;font-size:0.75rem;color:var(--color-text-secondary)">
+                                @Truncate(row.XmlResponse, 120)
+                            </span>
+                        </Template>
+                    </RadzenDataGridColumn>
+
+                </Columns>
+            </RadzenDataGrid>
+
+            <!-- ── Comparison section ── -->
+            @if (_selectedRecords.Count < 2)
+            {
+                <RadzenText Style="color:var(--color-text-muted)">
+                    Select two rows above to see the diff.
+                </RadzenText>
+            }
+            else
+            {
+                <RadzenCard Style="background:var(--color-bg-elevated);border:1px solid var(--color-border-subtle);border-radius:var(--radius-md);padding:1rem">
+
+                    <!-- Response boxes -->
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1rem">
+                        <div>
+                            <RadzenText TextStyle="TextStyle.Overline" Style="color:#f87171">
+                                @_leftLabel
+                            </RadzenText>
+                            <pre style="background:var(--color-bg-input);border:1px solid var(--color-border);
+                                        border-radius:var(--radius-sm);padding:0.75rem;font-size:0.72rem;
+                                        max-height:180px;overflow:auto;color:var(--color-text-secondary);
+                                        white-space:pre-wrap;word-break:break-all">@(_leftResponse ?? "— no response —")</pre>
+                        </div>
+                        <div>
+                            <RadzenText TextStyle="TextStyle.Overline" Style="color:#34d399">
+                                @_rightLabel
+                            </RadzenText>
+                            <pre style="background:var(--color-bg-input);border:1px solid var(--color-border);
+                                        border-radius:var(--radius-sm);padding:0.75rem;font-size:0.72rem;
+                                        max-height:180px;overflow:auto;color:var(--color-text-secondary);
+                                        white-space:pre-wrap;word-break:break-all">@(_rightResponse ?? "— no response —")</pre>
+                        </div>
+                    </div>
+
+                    <!-- Legend -->
+                    <div class="diff-legend" style="margin-bottom:0.5rem">
+                        <div class="diff-legend-item">
+                            <div class="diff-legend-dot" style="background:#f87171"></div>
+                            <span style="color:#f87171">Only in A (left)</span>
+                        </div>
+                        <div class="diff-legend-item">
+                            <div class="diff-legend-dot" style="background:#34d399"></div>
+                            <span style="color:#34d399">Only in B (right)</span>
+                        </div>
+                        <div class="diff-legend-item">
+                            <div class="diff-legend-dot" style="background:var(--color-text-muted)"></div>
+                            <span style="color:var(--color-text-muted)">Identical</span>
+                        </div>
+                    </div>
+
+                    <!-- Diff -->
+                    @if (_diffLines.Count == 0)
+                    {
+                        <RadzenText Style="color:var(--color-success);font-weight:600">
+                            ✅ Responses are identical — no differences found.
+                        </RadzenText>
+                    }
+                    else
+                    {
+                        <div class="diff-container">
+                            @foreach (var line in _diffLines)
+                            {
+                                <div class="diff-line diff-@line.Type.ToString().ToLower()">
+                                    <span class="diff-marker">@GetMarker(line.Type)</span>
+                                    <span>@line.Text</span>
+                                </div>
+                            }
+                        </div>
+                    }
+
+                </RadzenCard>
+            }
+        }
+    }
+
+</RadzenStack>
+
+@code {
+
+    // ── Data ──────────────────────────────────────────────────────────────────
+    private IReadOnlyList<HistoryGroupModel> _groups       = [];
+    private IReadOnlyList<HistoryModel>      _groupRecords = [];
+    private IList<HistoryModel>              _selectedRecords = new List<HistoryModel>();
+    private HistoryGroupModel?               _selectedGroup;
+    private string?                          _leftResponse;
+    private string?                          _rightResponse;
+    private string?                          _leftLabel;
+    private string?                          _rightLabel;
+    private List<DiffLine>                   _diffLines      = [];
+    private bool                             _loadingGroups  = true;
+    private bool                             _loadingRecords = false;
+
+    // ── Lifecycle ─────────────────────────────────────────────────────────────
+    protected override async Task OnInitializedAsync()
+    {
+        _groups = await MembersApi.GetHistoryGroupsAsync();
+        _loadingGroups = false;
+    }
+
+    // ── Group selection ───────────────────────────────────────────────────────
+    private async Task OnGroupSelected(HistoryGroupModel group)
+    {
+        _selectedGroup   = group;
+        _groupRecords    = [];
+        _selectedRecords = new List<HistoryModel>();
+        _leftResponse    = null;
+        _rightResponse   = null;
+        _leftLabel       = null;
+        _rightLabel      = null;
+        _diffLines       = [];
+        _loadingRecords  = true;
+        StateHasChanged();
+
+        _groupRecords   = await MembersApi.GetHistoryByGroupAsync(
+            group.Description ?? "",
+            group.Environment ?? "");
+
+        _loadingRecords = false;
+    }
+
+    // ── Record row click (manual selection, max 2) ────────────────────────────
+    private void OnRecordRowClick(DataGridRowMouseEventArgs<HistoryModel> args)
+    {
+        var row = args.Data;
+
+        if (_selectedRecords.Contains(row))
+        {
+            // Already selected → deselect it
+            _selectedRecords.Remove(row);
+        }
+        else if (_selectedRecords.Count < 2)
+        {
+            // Fewer than 2 selected → add it
+            _selectedRecords.Add(row);
+        }
+        else
+        {
+            // Already 2 selected → replace the oldest with the new one
+            _selectedRecords.RemoveAt(0);
+            _selectedRecords.Add(row);
+        }
+
+        RefreshComparison();
+    }
+
+    private void OnRecordRowRender(RowRenderEventArgs<HistoryModel> args)
+    {
+        args.Attributes["class"] = _selectedRecords.Contains(args.Data)
+            ? "rz-data-row record-row-selected"
+            : "rz-data-row";
+    }
+
+    // ── Refresh comparison from the two selected rows ─────────────────────────
+    private void RefreshComparison()
+    {
+        if (_selectedRecords.Count == 2)
+        {
+            var a = _selectedRecords[0];
+            var b = _selectedRecords[1];
+
+            _leftLabel    = $"A — #{a.Id} · {ApiLabel(a.ApiType)} · {a.DateTimeUtc:yyyy-MM-dd HH:mm}";
+            _rightLabel   = $"B — #{b.Id} · {ApiLabel(b.ApiType)} · {b.DateTimeUtc:yyyy-MM-dd HH:mm}";
+            _leftResponse  = a.XmlResponse;
+            _rightResponse = b.XmlResponse;
+            _diffLines     = ComputeDiff(_leftResponse, _rightResponse);
+        }
+        else
+        {
+            _leftLabel    = null;
+            _rightLabel   = null;
+            _leftResponse  = null;
+            _rightResponse = null;
+            _diffLines     = [];
+        }
+    }
+
+    // ── Helpers ───────────────────────────────────────────────────────────────
+    private static string ApiLabel(string? apiType) => apiType switch
+    {
+        "L" => "Legacy",
+        "N" => "New",
+        _   => apiType ?? "?"
+    };
+
+    private static string Truncate(string? text, int max) =>
+        string.IsNullOrWhiteSpace(text) ? "—"
+        : text.Length <= max ? text
+        : text[..max] + "…";
+
+    private static string GetMarker(DiffType t) => t switch
+    {
+        DiffType.LegacyOnly => "−",
+        DiffType.NewOnly    => "+",
+        _                   => " "
+    };
+
+    // ── Diff types ────────────────────────────────────────────────────────────
+    private enum DiffType { Same, LegacyOnly, NewOnly }
+    private record DiffLine(string Text, DiffType Type);
+
+    // ── Diff algorithm (LCS-based) ────────────────────────────────────────────
+    private static List<DiffLine> ComputeDiff(string? leftXml, string? rightXml)
+    {
+        var a = (leftXml  ?? "").Split('\n');
+        var b = (rightXml ?? "").Split('\n');
+        int m = a.Length, n = b.Length;
+
+        var dp = new int[m + 1, n + 1];
+        for (int i = 1; i <= m; i++)
+            for (int j = 1; j <= n; j++)
+                dp[i, j] = string.Equals(a[i - 1].Trim(), b[j - 1].Trim(), StringComparison.Ordinal)
+                    ? dp[i - 1, j - 1] + 1
+                    : Math.Max(dp[i - 1, j], dp[i, j - 1]);
+
+        var result = new List<DiffLine>();
+        int ai = m, bi = n;
+        while (ai > 0 || bi > 0)
+        {
+            if (ai > 0 && bi > 0 &&
+                string.Equals(a[ai - 1].Trim(), b[bi - 1].Trim(), StringComparison.Ordinal))
+            {
+                result.Add(new DiffLine(a[ai - 1], DiffType.Same));
+                ai--; bi--;
+            }
+            else if (bi > 0 && (ai == 0 || dp[ai, bi - 1] >= dp[ai - 1, bi]))
+            {
+                result.Add(new DiffLine(b[bi - 1], DiffType.NewOnly));
+                bi--;
+            }
+            else
+            {
+                result.Add(new DiffLine(a[ai - 1], DiffType.LegacyOnly));
+                ai--;
+            }
+        }
+
+        result.Reverse();
+        return result;
+    }
+}
