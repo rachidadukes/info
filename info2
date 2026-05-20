@@ -1,15 +1,10 @@
 
-CREATE TABLE RequestTypeTranCodes
-(
-    Id INTEGER PRIMARY KEY AUTOINCREMENT,
-    RequestType TEXT,
-    TranCode TEXT
-);
-
-INSERT INTO RequestTypeTranCodes (RequestType, TranCode)
+CREATE VIEW vw_RequestTypeTranCodes AS
 SELECT DISTINCT
-       RequestType,
-       TranCode
+       TRIM(RequestType) AS RequestType,
+       TRIM(TranCode) AS TranCode
 FROM LogDetails
 WHERE RequestType IS NOT NULL
-  AND TranCode IS NOT NULL;
+  AND TranCode IS NOT NULL
+  AND TRIM(RequestType) <> ''
+  AND TRIM(TranCode) <> '';
