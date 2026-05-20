@@ -1,1 +1,15 @@
 
+CREATE TABLE RequestTypeTranCodes
+(
+    Id INTEGER PRIMARY KEY AUTOINCREMENT,
+    RequestType TEXT,
+    TranCode TEXT
+);
+
+INSERT INTO RequestTypeTranCodes (RequestType, TranCode)
+SELECT DISTINCT
+       RequestType,
+       TranCode
+FROM LogDetails
+WHERE RequestType IS NOT NULL
+  AND TranCode IS NOT NULL;
