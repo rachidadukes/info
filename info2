@@ -1,28 +1,3 @@
-private async Task UpdateImportStatus(
-    string importKey,
-    DateTime maxDate)
-{
-    OpenSQLiteDatabase openDb = new();
-    var dbContext = openDb.OpenDatabase();
-
-    var status = await dbContext.ImportStatus
-        .FirstOrDefaultAsync(x => x.ImportKey == importKey);
-
-    if (status != null)
-    {
-        status.MaxDate = maxDate;
-    }
-    else
-    {
-        status = new ImportStatusModel
-        {
-            ImportKey = importKey,
-            Description = $"Maximum date for {importKey}",
-            MaxDate = maxDate
-        };
-
-        await dbContext.ImportStatus.AddAsync(status);
-    }
-
-    await dbContext.SaveChangesAsync();
-}
+DateTime maxIntgDate = await dbContext.OriginalLogs
+    .Where(o => o.Environment == "INTG")
+    .MaxAsync(o => o.DateTimeStamp);
