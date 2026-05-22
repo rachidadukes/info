@@ -1,3 +1,50 @@
-DateTime maxIntgDate = await dbContext.OriginalLogs
-    .Where(o => o.Environment == "INTG")
-    .MaxAsync(o => o.DateTimeStamp);
+using Microsoft.EntityFrameworkCore;
+using System.Data;
+using System.Windows;
+
+private async void btnReduceDatabaseSize_Click(object sender, RoutedEventArgs e)
+{
+    try
+    {
+        await using var dbContext = new OpenSQLiteDatabase().OpenDatabase();
+
+        if (dbContext == null)
+        {
+            MessageBox.Show("Database not found.", "Error",
+                MessageBoxButton.OK, MessageBoxImage.Error);
+            return;
+        }
+
+        var connection = dbContext.Database.GetDbConnection();
+
+        if (connection.State != ConnectionState.Open)
+            await connection.OpenAsync();
+
+        await using var command = connection.CreateCommand();
+
+        // Flush WAL content into main database file
+        command.CommandText = "PRAGMA wal_checkpoint(FULL);";
+        await command.ExecuteNonQueryAsync();
+
+        // Rebuild SQLite file and remove unused pages
+        command.CommandText = "VACUUM;";
+        await command.ExecuteNonQueryAsync();
+
+        // Optional: optimize SQLite query planner statistics
+        command.CommandText = "PRAGMA optimize;";
+        await command.ExecuteNonQueryAsync();
+
+        MessageBox.Show("Database size successfully reduced.",
+            "Success",
+            MessageBoxButton.OK,
+            MessageBoxImage.Information);
+    }
+    catch (Exception ex)
+    {
+        MessageBox.Show(
+            $"Error during database optimization:\n{ex.Message}",
+            "Error",
+            MessageBoxButton.OK,
+            MessageBoxImage.Error);
+    }
+}
