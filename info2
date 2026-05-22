@@ -1,50 +1,9 @@
-using Microsoft.EntityFrameworkCore;
-using System.Data;
-using System.Windows;
+var itemsNotInLogDetails =
+    from rr in _context.RequestResponse
+    join ld in _context.LogDetails
+        on rr.LogId equals ld.LogId into gj
+    from sub in gj.DefaultIfEmpty()
+    where sub == null
+    select rr;
 
-private async void btnReduceDatabaseSize_Click(object sender, RoutedEventArgs e)
-{
-    try
-    {
-        await using var dbContext = new OpenSQLiteDatabase().OpenDatabase();
-
-        if (dbContext == null)
-        {
-            MessageBox.Show("Database not found.", "Error",
-                MessageBoxButton.OK, MessageBoxImage.Error);
-            return;
-        }
-
-        var connection = dbContext.Database.GetDbConnection();
-
-        if (connection.State != ConnectionState.Open)
-            await connection.OpenAsync();
-
-        await using var command = connection.CreateCommand();
-
-        // Flush WAL content into main database file
-        command.CommandText = "PRAGMA wal_checkpoint(FULL);";
-        await command.ExecuteNonQueryAsync();
-
-        // Rebuild SQLite file and remove unused pages
-        command.CommandText = "VACUUM;";
-        await command.ExecuteNonQueryAsync();
-
-        // Optional: optimize SQLite query planner statistics
-        command.CommandText = "PRAGMA optimize;";
-        await command.ExecuteNonQueryAsync();
-
-        MessageBox.Show("Database size successfully reduced.",
-            "Success",
-            MessageBoxButton.OK,
-            MessageBoxImage.Information);
-    }
-    catch (Exception ex)
-    {
-        MessageBox.Show(
-            $"Error during database optimization:\n{ex.Message}",
-            "Error",
-            MessageBoxButton.OK,
-            MessageBoxImage.Error);
-    }
-}
+var result = await itemsNotInLogDetails.ToListAsync();
