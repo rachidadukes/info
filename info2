@@ -1,9 +1,37 @@
-var itemsNotInLogDetails =
-    from rr in _context.RequestResponse
-    join ld in _context.LogDetails
-        on rr.LogId equals ld.LogId into gj
-    from sub in gj.DefaultIfEmpty()
-    where sub == null
-    select rr;
+public async Task SaveNewRequestResponse(List<RequestResponseModel> newLogs)
+{
+    try
+    {
+        OpenSQLiteDatabase openDb = new OpenSQLiteDatabase();
+        var dbContext = openDb.OpenDatabase();
 
-var result = await itemsNotInLogDetails.ToListAsync();
+        var newRequestResponses = new List<RequestResponseModel>();
+
+        foreach (var nums in newLogs)
+        {
+            var newLog = new RequestResponseModel
+            {
+                LogId = nums.LogId,
+                Request = nums.Request,
+                Response = nums.Response,
+                Environment = nums.Environment,
+                UserID = nums.UserID,
+                DateTimeStamp = nums.DateTimeStamp
+            };
+
+            newRequestResponses.Add(newLog);
+        }
+
+        await dbContext.RequestResponse.AddRangeAsync(newRequestResponses);
+        await dbContext.SaveChangesAsync();
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine($"Error while saving changes: {ex.Message}");
+
+        if (ex.InnerException != null)
+        {
+            Console.WriteLine($"Inner exception: {ex.InnerException.Message}");
+        }
+    }
+}
