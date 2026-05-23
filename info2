@@ -1,11 +1,52 @@
-private void cmbTagNames_SelectionChanged(object sender, SelectionChangedEventArgs e)
+public static void SetRichTextBoxTextWithHighlight(
+    RichTextBox richTextBox,
+    string text,
+    string tagName)
 {
-    if (cmbTagNames.SelectedItem is TagNameListModel selectedItem)
+    richTextBox.Document.Blocks.Clear();
+
+    var paragraph = new Paragraph();
+    richTextBox.Document.Blocks.Add(paragraph);
+
+    if (string.IsNullOrWhiteSpace(text))
+        return;
+
+    if (string.IsNullOrWhiteSpace(tagName))
     {
-        selectedTagName = selectedItem.TagName;
+        paragraph.Inlines.Add(new Run(text));
+        return;
     }
-    else
+
+    int currentIndex = 0;
+    int matchIndex;
+
+    while ((matchIndex = text.IndexOf(tagName, currentIndex,
+               StringComparison.OrdinalIgnoreCase)) >= 0)
     {
-        selectedTagName = cmbTagNames.Text ?? string.Empty;
+        // normal text
+        if (matchIndex > currentIndex)
+        {
+            paragraph.Inlines.Add(
+                new Run(text.Substring(currentIndex,
+                matchIndex - currentIndex)));
+        }
+
+        // highlighted text
+        paragraph.Inlines.Add(
+            new Run(text.Substring(matchIndex, tagName.Length))
+            {
+                Foreground = Brushes.Red,
+                Background = Brushes.Yellow,
+                FontWeight = FontWeights.Bold
+            });
+
+        currentIndex = matchIndex + tagName.Length;
+    }
+
+    // remaining text
+    if (currentIndex < text.Length)
+    {
+        paragraph.Inlines.Add(
+            new Run(text.Substring(currentIndex)));
     }
 }
