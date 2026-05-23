@@ -1,9 +1,18 @@
-XmlViewHelper.SetRichTextBoxTextWithHighlight(
-    txtRequest,
-    selectedLog.Request,
-    selectedTagName);
+private void HighlightSelectedTagName(RequestResponseModel requestResponse)
+{
+    if (!string.IsNullOrWhiteSpace(requestResponse.Request))
+    {
+        XmlViewHelper.SetRichTextBoxTextWithHighlight(
+            txtRequest,
+            requestResponse.Request,
+            selectedTagName);
+    }
 
-XmlViewHelper.SetRichTextBoxTextWithHighlight(
-    txtResponse,
-    selectedLog.Response,
-    selectedTagName);
+    if (!string.IsNullOrWhiteSpace(requestResponse.Response))
+    {
+        XmlViewHelper.SetRichTextBoxTextWithHighlight(
+            txtResponse,
+            requestResponse.Response,
+            selectedTagName);
+    }
+}
