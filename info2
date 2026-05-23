@@ -1,6 +1,4 @@
-using System.Text.RegularExpressions;
-
-private Task<List<TagNameListModel>> ExtractTagNamesFromOneLog(OriginalLogsModel log)
+private async Task<List<TagNameListModel>> ExtractTagNamesFromOneLog(OriginalLogsModel log)
 {
     var tags = new List<TagNameListModel>();
 
@@ -9,15 +7,11 @@ private Task<List<TagNameListModel>> ExtractTagNamesFromOneLog(OriginalLogsModel
         if (log == null || string.IsNullOrWhiteSpace(log.EventDesc))
         {
             Console.WriteLine("Log is null or Log EventDesc is empty.");
-            return Task.FromResult(tags);
+            return tags;
         }
 
         string fullLog = log.EventDesc;
 
-        // Finds XML tags that have closing tags:
-        // Example:
-        // <MsgRsHdr xmlns="...">...</MsgRsHdr>
-        // <RqUID>123</RqUID>
         var matches = Regex.Matches(
             fullLog,
             @"<\s*(?<tag>[A-Za-z_][\w:\.-]*)(?:\s[^>]*)?>[\s\S]*?</\s*\k<tag>\s*>",
@@ -37,11 +31,11 @@ private Task<List<TagNameListModel>> ExtractTagNamesFromOneLog(OriginalLogsModel
             }
         }
 
-        return Task.FromResult(tags);
+        return tags;
     }
     catch (Exception ex)
     {
         Console.WriteLine($"Unexpected Error in ExtractTagNamesFromOneLog: {ex.Message}");
-        return Task.FromResult(new List<TagNameListModel>());
+        return new List<TagNameListModel>();
     }
 }
