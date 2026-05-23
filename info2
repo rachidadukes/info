@@ -1,41 +1,56 @@
-private async Task<List<TagNameListModel>> ExtractTagNamesFromOneLog(OriginalLogsModel log)
+public async Task SaveNewTagNamesAsync(List<TagNameListModel> tags)
 {
-    var tags = new List<TagNameListModel>();
+    if (tags == null || tags.Count == 0)
+        return;
 
-    try
-    {
-        if (log == null || string.IsNullOrWhiteSpace(log.EventDesc))
+    using var openDb = new OpenSQLiteDatabase();
+    using var dbContext = openDb.OpenDatabase();
+
+    var newTagNames = tags
+        .Where(t => !string.IsNullOrWhiteSpace(t.TagName))
+        .Select(t => t.TagName.Trim())
+        .Distinct()
+        .ToList();
+
+    var existingTagNames = await dbContext.TagNameList
+        .Where(t => newTagNames.Contains(t.TagName))
+        .Select(t => t.TagName)
+        .ToListAsync();
+
+    var tagsToAdd = newTagNames
+        .Except(existingTagNames)
+        .Select(tagName => new TagNameListModel
         {
-            Console.WriteLine("Log is null or Log EventDesc is empty.");
-            return tags;
-        }
+            TagName = tagName
+        })
+        .ToList();
 
-        string fullLog = log.EventDesc;
-
-        var matches = Regex.Matches(
-            fullLog,
-            @"<\s*(?<tag>[A-Za-z_][\w:\.-]*)(?:\s[^>]*)?>[\s\S]*?</\s*\k<tag>\s*>",
-            RegexOptions.IgnoreCase
-        );
-
-        foreach (Match match in matches)
-        {
-            string tagName = match.Groups["tag"].Value;
-
-            if (!string.IsNullOrWhiteSpace(tagName))
-            {
-                tags.Add(new TagNameListModel
-                {
-                    TagName = tagName
-                });
-            }
-        }
-
-        return tags;
-    }
-    catch (Exception ex)
+    if (tagsToAdd.Count > 0)
     {
-        Console.WriteLine($"Unexpected Error in ExtractTagNamesFromOneLog: {ex.Message}");
-        return new List<TagNameListModel>();
+        await dbContext.TagNameList.AddRangeAsync(tagsToAdd);
+        await dbContext.SaveChangesAsync();
     }
 }
+
+
+
+==========================
+
+TagsList = new List<TagNameListModel>();
+
+foreach (var log in originalLogs)
+{
+    FoundTags = await ExtractTagNamesFromOneLog(log);
+
+    foreach (var item in FoundTags)
+    {
+        TagsList.Add(new TagNameListModel
+        {
+            TagName = item.TagName
+        });
+    }
+}
+
+await SaveNewTagNamesAsync(TagsList);
+
+return TagsList;
