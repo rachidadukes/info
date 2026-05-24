@@ -1,8 +1,3 @@
-catch (DbUpdateException ex)
-{
-    await tx.RollbackAsync(ct);
-
-    var error = ex.InnerException?.Message ?? ex.Message;
-
-    return $"Error saving requests: {error}";
-}
+  // Reset auto increment identity back to 1
+    await dbContext.Database.ExecuteSqlRawAsync(
+        "DELETE FROM sqlite_sequence WHERE name='Requests';", ct);
