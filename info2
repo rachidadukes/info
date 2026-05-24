@@ -1,17 +1,27 @@
-using System.Xml.Linq;
+using System.Text.RegularExpressions;
 
 private string ExtractTransactionStatus(string response)
 {
     try
     {
-        var doc = XDocument.Parse(response);
+        if (string.IsNullOrWhiteSpace(response))
+            return "Unknown";
 
-        var status = doc.Descendants("transactionstatus").FirstOrDefault();
+        var match = Regex.Match(
+            response,
+            @"<transactionstatus>(.*?)</transactionstatus>",
+            RegexOptions.IgnoreCase | RegexOptions.Singleline);
 
-        return status?.Value ?? "Unknown";
+        if (match.Success)
+        {
+            return match.Groups[1].Value.Trim();
+        }
+
+        return "Unknown";
     }
-    catch
+    catch (Exception ex)
     {
+        Console.WriteLine($"Error: {ex.Message}");
         return "Unknown";
     }
 }
