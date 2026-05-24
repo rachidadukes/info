@@ -1,53 +1,8 @@
-private Task<List<TagNameListModel>> ExtractTagNamesFromOneLog(OriginalLogsModel log)
+catch (DbUpdateException ex)
 {
-    try
-    {
-        var tags = new List<TagNameListModel>();
+    await tx.RollbackAsync(ct);
 
-        if (log == null || string.IsNullOrWhiteSpace(log.EventDesc))
-        {
-            Console.WriteLine("Log is null or Log.EventDesc is empty.");
-            return Task.FromResult(tags);
-        }
+    var error = ex.InnerException?.Message ?? ex.Message;
 
-        string fullLog = log.EventDesc;
-
-        // Find ALL opening XML tags only
-        var matches = Regex.Matches(
-            fullLog,
-            @"<\s*(?!/|\?|!)(?<tag>[A-Za-z_][\w:\.-]*)(?:\s[^>]*)?\s*/?>",
-            RegexOptions.IgnoreCase);
-
-        // Store unique tag names
-        HashSet<string> uniqueTags = new HashSet<string>(
-            StringComparer.OrdinalIgnoreCase);
-
-        foreach (Match match in matches)
-        {
-            string tagName = match.Groups["tag"].Value.Trim();
-
-            if (!string.IsNullOrWhiteSpace(tagName))
-            {
-                uniqueTags.Add(tagName);
-            }
-        }
-
-        // Convert unique names into model list
-        foreach (string tag in uniqueTags.OrderBy(t => t))
-        {
-            tags.Add(new TagNameListModel
-            {
-                TagName = tag
-            });
-        }
-
-        return Task.FromResult(tags);
-    }
-    catch (Exception ex)
-    {
-        Console.WriteLine(
-            $"Unexpected Error in ExtractTagNamesFromOneLog: {ex.Message}");
-
-        return Task.FromResult(new List<TagNameListModel>());
-    }
+    return $"Error saving requests: {error}";
 }
