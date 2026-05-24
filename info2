@@ -1,5 +1,17 @@
- await dbContext.Database.ExecuteSqlRawAsync("DELETE FROM Requests;", ct);
+using System.Xml.Linq;
 
-    await dbContext.Database.ExecuteSqlRawAsync(
-        "DELETE FROM sqlite_sequence WHERE name = 'Requests';",
-        ct);
+private string ExtractTransactionStatus(string response)
+{
+    try
+    {
+        var doc = XDocument.Parse(response);
+
+        var status = doc.Descendants("transactionstatus").FirstOrDefault();
+
+        return status?.Value ?? "Unknown";
+    }
+    catch
+    {
+        return "Unknown";
+    }
+}
