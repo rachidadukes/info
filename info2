@@ -1,3 +1,5 @@
-  // Reset auto increment identity back to 1
+ await dbContext.Database.ExecuteSqlRawAsync("DELETE FROM Requests;", ct);
+
     await dbContext.Database.ExecuteSqlRawAsync(
-        "DELETE FROM sqlite_sequence WHERE name='Requests';", ct);
+        "DELETE FROM sqlite_sequence WHERE name = 'Requests';",
+        ct);
