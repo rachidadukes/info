@@ -1,34 +1,56 @@
-var result = await (
-    from ld in dbContext.LogDetails
-    join rr in dbContext.RequestResponse
-        on ld.LogId equals rr.LogId
-    select new
-    {
-        LogDetail = ld,
-        Request = rr.Request,
-        Response = rr.Response
-    })
-    .ToListAsync();
-
-foreach (var item in result)
+public async Task<List<LogDetailsModel>> GetMemberInfo()
 {
-    request = item.Request ?? "";
-    response = item.Response ?? "";
-    fullMessage = request + response;
+    using var openDb = new OpenSQLiteDatabase();
+    var dbContext = openDb.OpenDatabase();
 
-    var newItem = item.LogDetail;
+    using var transaction = await dbContext.Database.BeginTransactionAsync();
 
-    newItem.AccountNumber = ExtractTagValue(fullMessage, "AcctId");
-    newItem.AccountType = ExtractTagValue(fullMessage, "AcctType");
-    newItem.AccessNumber = ExtractTagValue(request, "CustPermId");
-    newItem.FirstName = ExtractTagValue(request, "firstName");
-    newItem.LastName = ExtractTagValue(request, "LastName");
-    newItem.TranCode = ExtractTagValue(request, "TranCode");
-    newItem.BusinessName = ExtractTagValue(request, "businessname");
-    newItem.RequestType = ExtractRequestTypeByReadingFirstTag(fullMessage);
-    newItem.ResponseStatusDesc = ExtractTagValue(fullMessage, "ResponseStatusDesc");
+    try
+    {
+        var requestResponses = await dbContext.RequestResponse
+            .ToListAsync();
+
+        var newLogDetails = new List<LogDetailsModel>();
+
+        foreach (var item in requestResponses)
+        {
+            string request = item.Request ?? "";
+            string response = item.Response ?? "";
+            string fullMessage = request + response;
+
+            var newItem = new LogDetailsModel
+            {
+                LogId = item.LogId,
+                Environment = item.Environment,
+                UserID = item.UserID,
+                DateTimeStamp = item.DateTimeStamp,
+
+                AccountNumber = ExtractTagValue(fullMessage, "AcctId"),
+                AccountType = ExtractTagValue(fullMessage, "AcctType"),
+                AccessNumber = ExtractTagValue(request, "CustPermId"),
+                FirstName = ExtractTagValue(request, "firstName"),
+                LastName = ExtractTagValue(request, "LastName"),
+                TranCode = ExtractTagValue(request, "TranCode"),
+                BusinessName = ExtractTagValue(request, "businessname"),
+                RequestType = ExtractRequestTypeByReadingFirstTag(fullMessage),
+                ResponseStatusDesc = ExtractTagValue(fullMessage, "ResponseStatusDesc")
+            };
+
+            newLogDetails.Add(newItem);
+        }
+
+        dbContext.LogDetails.RemoveRange(dbContext.LogDetails);
+
+        await dbContext.LogDetails.AddRangeAsync(newLogDetails);
+
+        await dbContext.SaveChangesAsync();
+        await transaction.CommitAsync();
+
+        return newLogDetails;
+    }
+    catch
+    {
+        await transaction.RollbackAsync();
+        throw;
+    }
 }
-
-await dbContext.SaveChangesAsync();
-
-return result.Select(x => x.LogDetail).ToList();
