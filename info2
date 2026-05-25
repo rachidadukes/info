@@ -1,16 +1,34 @@
-var result = (
+var result = await (
     from ld in dbContext.LogDetails
     join rr in dbContext.RequestResponse
         on ld.LogId equals rr.LogId
     select new
     {
-        LogId = ld.LogId,
-        AccountNumber = ld.AccountNumber,
-        FirstName = ld.FirstName,
-        LastName = ld.LastName,
+        LogDetail = ld,
         Request = rr.Request,
-        Response = rr.Response,
-        Environment = rr.Environment,
-        DateTimeStamp = rr.DateTimeStamp
+        Response = rr.Response
     })
-    .ToList();
+    .ToListAsync();
+
+foreach (var item in result)
+{
+    request = item.Request ?? "";
+    response = item.Response ?? "";
+    fullMessage = request + response;
+
+    var newItem = item.LogDetail;
+
+    newItem.AccountNumber = ExtractTagValue(fullMessage, "AcctId");
+    newItem.AccountType = ExtractTagValue(fullMessage, "AcctType");
+    newItem.AccessNumber = ExtractTagValue(request, "CustPermId");
+    newItem.FirstName = ExtractTagValue(request, "firstName");
+    newItem.LastName = ExtractTagValue(request, "LastName");
+    newItem.TranCode = ExtractTagValue(request, "TranCode");
+    newItem.BusinessName = ExtractTagValue(request, "businessname");
+    newItem.RequestType = ExtractRequestTypeByReadingFirstTag(fullMessage);
+    newItem.ResponseStatusDesc = ExtractTagValue(fullMessage, "ResponseStatusDesc");
+}
+
+await dbContext.SaveChangesAsync();
+
+return result.Select(x => x.LogDetail).ToList();
