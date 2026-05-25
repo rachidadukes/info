@@ -1,56 +1,26 @@
-public async Task<List<LogDetailsModel>> GetMemberInfo()
+private (string FirstName, string LastName) ExtractMemberName(string request)
 {
-    using var openDb = new OpenSQLiteDatabase();
-    var dbContext = openDb.OpenDatabase();
+    if (string.IsNullOrWhiteSpace(request))
+        return (string.Empty, string.Empty);
 
-    using var transaction = await dbContext.Database.BeginTransactionAsync();
+    string firstName =
+        ExtractTagValue(request, "FirstName");
 
-    try
-    {
-        var requestResponses = await dbContext.RequestResponse
-            .ToListAsync();
+    if (string.IsNullOrWhiteSpace(firstName))
+        firstName = ExtractTagValue(request, "firstName");
 
-        var newLogDetails = new List<LogDetailsModel>();
+    string lastName =
+        ExtractTagValue(request, "LastName");
 
-        foreach (var item in requestResponses)
-        {
-            string request = item.Request ?? "";
-            string response = item.Response ?? "";
-            string fullMessage = request + response;
+    if (string.IsNullOrWhiteSpace(lastName))
+        lastName = ExtractTagValue(request, "lastName");
 
-            var newItem = new LogDetailsModel
-            {
-                LogId = item.LogId,
-                Environment = item.Environment,
-                UserID = item.UserID,
-                DateTimeStamp = item.DateTimeStamp,
-
-                AccountNumber = ExtractTagValue(fullMessage, "AcctId"),
-                AccountType = ExtractTagValue(fullMessage, "AcctType"),
-                AccessNumber = ExtractTagValue(request, "CustPermId"),
-                FirstName = ExtractTagValue(request, "firstName"),
-                LastName = ExtractTagValue(request, "LastName"),
-                TranCode = ExtractTagValue(request, "TranCode"),
-                BusinessName = ExtractTagValue(request, "businessname"),
-                RequestType = ExtractRequestTypeByReadingFirstTag(fullMessage),
-                ResponseStatusDesc = ExtractTagValue(fullMessage, "ResponseStatusDesc")
-            };
-
-            newLogDetails.Add(newItem);
-        }
-
-        dbContext.LogDetails.RemoveRange(dbContext.LogDetails);
-
-        await dbContext.LogDetails.AddRangeAsync(newLogDetails);
-
-        await dbContext.SaveChangesAsync();
-        await transaction.CommitAsync();
-
-        return newLogDetails;
-    }
-    catch
-    {
-        await transaction.RollbackAsync();
-        throw;
-    }
+    return (firstName, lastName);
 }
+
+===================
+
+var memberName = ExtractMemberName(request);
+
+ FirstName = memberName.FirstName,
+    LastName = memberName.LastName,
