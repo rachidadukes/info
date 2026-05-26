@@ -1,24 +1,62 @@
-private void LogsListView_SelectionChanged(object sender, SelectionChangedEventArgs e)
+private string ExtractSimpleStatusValue(string input)
 {
-    try
-    {
-        if (LogsListView.SelectedItem is not RequestResponseModel selectedLog)
-            return;
+    if (string.IsNullOrWhiteSpace(input))
+        return string.Empty;
 
-        SetRichTextBoxText(
-            txtRequest,
-            string.IsNullOrWhiteSpace(selectedLog.Request)
-                ? "No Request Found"
-                : selectedLog.Request);
+    var matches = System.Text.RegularExpressions.Regex.Matches(
+        input,
+        @"<Status>(.*?)</Status>",
+        System.Text.RegularExpressions.RegexOptions.IgnoreCase |
+        System.Text.RegularExpressions.RegexOptions.Singleline);
 
-        SetRichTextBoxText(
-            txtResponse,
-            string.IsNullOrWhiteSpace(selectedLog.Response)
-                ? "No Response Found"
-                : selectedLog.Response);
-    }
-    catch (Exception ex)
+    foreach (System.Text.RegularExpressions.Match match in matches)
     {
-        MessageBox.Show(ex.Message);
+        var value = match.Groups[1].Value.Trim();
+
+        // Ignore parent Status blocks that contain child tags
+        if (!value.Contains("<"))
+            return value;
     }
+
+    return string.Empty;
 }
+
+===========================
+private ResponseStatusFields ExtractResponseStatusFields(string message)
+{
+    return new ResponseStatusFields
+    {
+        Severity = ExtractTagValue(message, "Severity"),
+        StatusCode = ExtractTagValue(message, "StatusCode"),
+        StatusDesc = ExtractTagValue(message, "StatusDesc"),
+        ResponseCode = ExtractTagValue(message, "ResponseCode"),
+
+        Status = ExtractSimpleStatusValue(message),
+        StatusDescription = ExtractTagValue(message, "StatusDescription"),
+
+        TransactionStatus = ExtractTagValue(message, "transactionStatus")
+    };
+}
+=================================================================
+ public string Severity { get; set; } = "";
+    public string StatusCode { get; set; } = "";
+    public string StatusDesc { get; set; } = "";
+    public string ResponseCode { get; set; } = "";
+    public string Status { get; set; } = "";
+    public string StatusDescription { get; set; } = "";
+    public string TransactionStatus { get; set; } = "";
+
+================================
+
+var fields = ExtractResponseStatusFields(fullMessage);
+
+log.Status = fields.Status;
+log.StatusCode = fields.StatusCode;
+log.StatusDescription = 
+    !string.IsNullOrWhiteSpace(fields.StatusDescription)
+        ? fields.StatusDescription
+        : fields.StatusDesc;
+
+log.Severity = fields.Severity;
+log.ResponseCode = fields.ResponseCode;
+log.TransactionStatus = fields.TransactionStatus;
