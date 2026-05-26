@@ -1,26 +1,24 @@
-private (string FirstName, string LastName) ExtractMemberName(string request)
+private void LogsListView_SelectionChanged(object sender, SelectionChangedEventArgs e)
 {
-    if (string.IsNullOrWhiteSpace(request))
-        return (string.Empty, string.Empty);
+    try
+    {
+        if (LogsListView.SelectedItem is not RequestResponseModel selectedLog)
+            return;
 
-    string firstName =
-        ExtractTagValue(request, "FirstName");
+        SetRichTextBoxText(
+            txtRequest,
+            string.IsNullOrWhiteSpace(selectedLog.Request)
+                ? "No Request Found"
+                : selectedLog.Request);
 
-    if (string.IsNullOrWhiteSpace(firstName))
-        firstName = ExtractTagValue(request, "firstName");
-
-    string lastName =
-        ExtractTagValue(request, "LastName");
-
-    if (string.IsNullOrWhiteSpace(lastName))
-        lastName = ExtractTagValue(request, "lastName");
-
-    return (firstName, lastName);
+        SetRichTextBoxText(
+            txtResponse,
+            string.IsNullOrWhiteSpace(selectedLog.Response)
+                ? "No Response Found"
+                : selectedLog.Response);
+    }
+    catch (Exception ex)
+    {
+        MessageBox.Show(ex.Message);
+    }
 }
-
-===================
-
-var memberName = ExtractMemberName(request);
-
- FirstName = memberName.FirstName,
-    LastName = memberName.LastName,
