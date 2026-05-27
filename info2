@@ -1,1 +1,13 @@
 
+private string ExtractStatusDesc(string response)
+{
+    if (string.IsNullOrWhiteSpace(response))
+        return string.Empty;
+
+    if (response.Contains("<StatusDesc>"))
+    {
+        return ExtractTagValue(response, "StatusDesc");
+    }
+
+    return string.Empty;
+}
