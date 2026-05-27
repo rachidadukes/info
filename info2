@@ -1,2 +1,1 @@
-private GridViewColumnHeader? _lastHeaderClicked;
-private ListSortDirection _lastDirection = ListSortDirection.Ascending;
+
