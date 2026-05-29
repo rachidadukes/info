@@ -1,13 +1,12 @@
-
-private string ExtractStatusDesc(string response)
-{
-    if (string.IsNullOrWhiteSpace(response))
-        return string.Empty;
-
-    if (response.Contains("<StatusDesc>"))
-    {
-        return ExtractTagValue(response, "StatusDesc");
-    }
-
-    return string.Empty;
-}
+CREATE TABLE AccountInfo
+(
+    Id INTEGER PRIMARY KEY AUTOINCREMENT,
+    AccountNumber TEXT,
+    AccountStatus TEXT,
+    AvailableBalance TEXT,
+    AccountType TEXT,
+    ProductCode TEXT,
+    ProductDescription TEXT,
+    Environment TEXT,
+    ErrorMessage TEXT
+);
