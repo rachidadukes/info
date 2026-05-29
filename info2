@@ -1,12 +1,45 @@
-CREATE TABLE AccountInfo
-(
-    Id INTEGER PRIMARY KEY AUTOINCREMENT,
-    AccountNumber TEXT,
-    AccountStatus TEXT,
-    AvailableBalance TEXT,
-    AccountType TEXT,
-    ProductCode TEXT,
-    ProductDescription TEXT,
-    Environment TEXT,
-    ErrorMessage TEXT
-);
+public async Task SaveAsync(AccountInfoModel accountInfo)
+{
+    string sql = @"
+        INSERT INTO AccountInfo
+        (
+            AccountNumber,
+            AccountStatus,
+            AvailableBalance,
+            AccountType,
+            ProductCode,
+            ProductDescription,
+            Environment,
+            ErrorMessage
+        )
+        VALUES
+        (
+            @AccountNumber,
+            @AccountStatus,
+            @AvailableBalance,
+            @AccountType,
+            @ProductCode,
+            @ProductDescription,
+            @Environment,
+            @ErrorMessage
+        )";
+
+    await DatabaseHelper.ExecuteNonQueryAsync(sql, accountInfo);
+} 
+
+===========================
+
+await accountInfoManager.SaveAsync(accountInfo);
+
+=============================
+
+accountInfo = await balance.GetAccountBalanceAsync(
+    accountsList,
+    selectedItemAccountNumber,
+    selectedItemAccountType);
+
+accountInfo.Environment = selectedItemEnvironment;
+
+await SaveAsync(accountInfo);
+
+
