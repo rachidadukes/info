@@ -1,45 +1,19 @@
 public async Task SaveAsync(AccountInfoModel accountInfo)
 {
-    string sql = @"
-        INSERT INTO AccountInfo
-        (
-            AccountNumber,
-            AccountStatus,
-            AvailableBalance,
-            AccountType,
-            ProductCode,
-            ProductDescription,
-            Environment,
-            ErrorMessage
-        )
-        VALUES
-        (
-            @AccountNumber,
-            @AccountStatus,
-            @AvailableBalance,
-            @AccountType,
-            @ProductCode,
-            @ProductDescription,
-            @Environment,
-            @ErrorMessage
-        )";
+    OpenSQLiteDatabase openDb = new OpenSQLiteDatabase();
+    var dbContext = openDb.OpenDatabase();
 
-    await DatabaseHelper.ExecuteNonQueryAsync(sql, accountInfo);
-} 
+    if (dbContext == null)
+        return;
 
-===========================
+    bool alreadyExists = await dbContext.AccountInfo.AnyAsync(x =>
+        x.AccountNumber == accountInfo.AccountNumber &&
+        x.AccountType == accountInfo.AccountType &&
+        x.AvailableBalance == accountInfo.AvailableBalance);
 
-await accountInfoManager.SaveAsync(accountInfo);
-
-=============================
-
-accountInfo = await balance.GetAccountBalanceAsync(
-    accountsList,
-    selectedItemAccountNumber,
-    selectedItemAccountType);
-
-accountInfo.Environment = selectedItemEnvironment;
-
-await SaveAsync(accountInfo);
-
-
+    if (!alreadyExists)
+    {
+        dbContext.AccountInfo.Add(accountInfo);
+        await dbContext.SaveChangesAsync();
+    }
+}
