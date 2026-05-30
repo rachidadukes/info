@@ -1,26 +1,47 @@
+using Domain.DTOs;
 
-<VerifyAcctNumberInqRq>
-  <MsgRqHdr xmlns="http://schemas.navyfederal.org/2010/04/NFBranchExService">
-    <RqUID>2745c77b-c426-4739-bf04-17818c56ed50</RqUID>
-    <EnvironmentName>NFCU</EnvironmentName>
-    <TranCode>Q004</TranCode>
-    <BranchId>D3</BranchId>
-    <PCName>LTCC483A490BE4</PCName>
-    <TranCodeQual>0000</TranCodeQual>
-    <CashBoxId>1</CashBoxId>
-    <EmployeeId>15308</EmployeeId>
-    <PostingDt>2022-02-18</PostingDt>
-    <CalendarDt>2025-12-02</CalendarDt>
-    <TranTime>09:08:15</TranTime>
-    <TranSeqNum>0</TranSeqNum>
-    <ForwardTranFlag>0</ForwardTranFlag>
-    <MultiTranFlag>0</MultiTranFlag>
-  </MsgRqHdr>
+namespace Domain.Mappers
+{
+    public static class VerifyAcctEntityMapper
+    {
+        public static AccountVerificationResponseDTO MapVerifyAcct(
+            this VerifyAccountRs response)
+        {
+            if (response == null)
+                return new AccountVerificationResponseDTO();
 
-  <VerifyAcctNumberInqInfo xmlns="http://schemas.navyfederal.org/2010/04/NFBranchExService">
-    <AcctKeys>
-      <AcctId>0000068000004269605</AcctId>
-      <AcctType>SC</AcctType>
-    </AcctKeys>
-  </VerifyAcctNumberInqInfo>
-</VerifyAcctNumberInqRq>
+            var dto = new AccountVerificationResponseDTO();
+
+            // Skip MsgRsHdr for now until we see the exact class
+
+            if (response.RespDisplayData == null)
+                return dto;
+
+            foreach (var item in response.RespDisplayData.InfoMessage)
+            {
+                if (string.IsNullOrWhiteSpace(item))
+                    continue;
+
+                if (item.StartsWith("Member Name:",
+                    StringComparison.OrdinalIgnoreCase))
+                {
+                    dto.MemberName =
+                        item.Replace("Member Name:", "").Trim();
+                }
+                else if (item.StartsWith("Account Status:",
+                    StringComparison.OrdinalIgnoreCase))
+                {
+                    dto.AccountStatus =
+                        item.Replace("Account Status:", "").Trim();
+                }
+                else if (!item.StartsWith("Member Alerts:",
+                    StringComparison.OrdinalIgnoreCase))
+                {
+                    dto.Alerts.Add(item);
+                }
+            }
+
+            return dto;
+        }
+    }
+}
