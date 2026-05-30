@@ -1,19 +1,55 @@
-public async Task SaveAsync(AccountInfoModel accountInfo)
-{
-    OpenSQLiteDatabase openDb = new OpenSQLiteDatabase();
-    var dbContext = openDb.OpenDatabase();
 
-    if (dbContext == null)
-        return;
 
-    bool alreadyExists = await dbContext.AccountInfo.AnyAsync(x =>
-        x.AccountNumber == accountInfo.AccountNumber &&
-        x.AccountType == accountInfo.AccountType &&
-        x.AvailableBalance == accountInfo.AvailableBalance);
+    [NotMapped]
+    public bool HasAccountInfoRecord { get; set; }
 
-    if (!alreadyExists)
+using System.ComponentModel.DataAnnotations.Schema;
+=================================================
+
+allAccessAcctNums = await dbContext.AccessAcctNumbers
+    .Where(e => e.Environment != null &&
+                e.Environment.Contains(Environment))
+    .Select(s => new AccessAcctNumbersModel
     {
-        dbContext.AccountInfo.Add(accountInfo);
-        await dbContext.SaveChangesAsync();
-    }
+        Id = s.Id,
+        Environment = s.Environment,
+        AccessNumber = s.AccessNumber,
+        AccountNumber = s.AccountNumber,
+        AccountType = s.AccountType,
+        LogId = s.LogId,
+
+        HasAccountInfoRecord = dbContext.AccountInfo.Any(a =>
+            a.AccountNumber == s.AccountNumber &&
+            a.AccountType == s.AccountType &&
+            a.Environment == s.Environment)
+    })
+    .ToListAsync();
+
+=========================
+
+private async void LoadAllAccessNumberAccountNumbers()
+{
+    OpenSQLiteDatabase OpenDb = new OpenSQLiteDatabase();
+    var dbContext = OpenDb.OpenDatabase();
+
+    allAccessAcctNums = await dbContext.AccessAcctNumbers
+        .Where(e => e.Environment != null &&
+                    e.Environment.Contains(Environment))
+        .Select(s => new AccessAcctNumbersModel
+        {
+            Id = s.Id,
+            Environment = s.Environment,
+            AccessNumber = s.AccessNumber,
+            AccountNumber = s.AccountNumber,
+            AccountType = s.AccountType,
+            LogId = s.LogId,
+
+            HasAccountInfoRecord = dbContext.AccountInfo.Any(a =>
+                a.AccountNumber == s.AccountNumber &&
+                a.AccountType == s.AccountType &&
+                a.Environment == s.Environment)
+        })
+        .ToListAsync();
 }
+
+=============================================
