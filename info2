@@ -1,64 +1,19 @@
-public async Task CallVerifyAccountService(
-    string selectedItemAccountNumber,
-    string selectedItemAccountType,
-    string selectedItemEnvironment)
+var messages = response?.RespDisplayData?.InfoMessage;
+
+if (messages == null)
+    return dto;
+
+foreach (var item in messages)
 {
-    try
-    {
-        var acctObject = new VerifyAcctResponse();
+    if (string.IsNullOrWhiteSpace(item))
+        continue;
 
-        string xmlStringResponse =
-            await acctObject.GetVerifyAccountXMLResponseAsync(
-                selectedItemAccountNumber,
-                selectedItemAccountType,
-                selectedItemEnvironment);
+    if (item.StartsWith("Member Name:", StringComparison.OrdinalIgnoreCase))
+        dto.MemberName = item.Replace("Member Name:", "").Trim();
 
-        var resultWrapper =
-            await acctObject.GetAccountVerifyAsync(xmlStringResponse);
+    else if (item.StartsWith("Account Status:", StringComparison.OrdinalIgnoreCase))
+        dto.AccountStatus = item.Replace("Account Status:", "").Trim();
 
-        if (resultWrapper?.Data == null)
-        {
-            MessageBox.Show(
-                "No account verification found.",
-                "Information",
-                MessageBoxButton.OK,
-                MessageBoxImage.Information);
-
-            return;
-        }
-
-        AccountVerificationResponseDTO verifyAcctResponse = resultWrapper.Data;
-
-        string message =
-            $"Member Name: {verifyAcctResponse.MemberName}{Environment.NewLine}" +
-            $"Account Status: {verifyAcctResponse.AccountsStatus}{Environment.NewLine}" +
-            $"Member Alerts:{Environment.NewLine}";
-
-        if (verifyAcctResponse.Alerts != null &&
-            verifyAcctResponse.Alerts.Any())
-        {
-            foreach (var alert in verifyAcctResponse.Alerts)
-            {
-                message += alert + Environment.NewLine;
-            }
-        }
-        else
-        {
-            message += "No alerts found.";
-        }
-
-        MessageBox.Show(
-            message,
-            "Host Response",
-            MessageBoxButton.OK,
-            MessageBoxImage.Information);
-    }
-    catch (Exception ex)
-    {
-        MessageBox.Show(
-            ex.Message,
-            "Error",
-            MessageBoxButton.OK,
-            MessageBoxImage.Error);
-    }
+    else if (!item.StartsWith("Member Alerts:", StringComparison.OrdinalIgnoreCase))
+        dto.Alerts.Add(item.Trim());
 }
