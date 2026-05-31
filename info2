@@ -9,10 +9,12 @@ namespace Domain.Mappers
         {
             var dto = new AccountVerificationResponseDTO();
 
-            if (response?.RespDisplayData == null)
+            var messages = response?.RespDisplayData?.InfoMessage;
+
+            if (messages == null)
                 return dto;
 
-            foreach (var item in response.RespDisplayData)
+            foreach (var item in messages)
             {
                 if (string.IsNullOrWhiteSpace(item))
                     continue;
@@ -23,7 +25,7 @@ namespace Domain.Mappers
                 }
                 else if (item.StartsWith("Account Status:", StringComparison.OrdinalIgnoreCase))
                 {
-                    dto.AccountStatus = item.Replace("Account Status:", "").Trim();
+                    dto.AccountsStatus = item.Replace("Account Status:", "").Trim();
                 }
                 else if (!item.StartsWith("Member Alerts:", StringComparison.OrdinalIgnoreCase))
                 {
