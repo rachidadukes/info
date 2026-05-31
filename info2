@@ -7,37 +7,27 @@ namespace Domain.Mappers
         public static AccountVerificationResponseDTO MapVerifyAcct(
             this VerifyAccountRs response)
         {
-            if (response == null)
-                return new AccountVerificationResponseDTO();
-
             var dto = new AccountVerificationResponseDTO();
 
-            // Skip MsgRsHdr for now until we see the exact class
-
-            if (response.RespDisplayData == null)
+            if (response?.RespDisplayData == null)
                 return dto;
 
-            foreach (var item in response.RespDisplayData.InfoMessage)
+            foreach (var item in response.RespDisplayData)
             {
                 if (string.IsNullOrWhiteSpace(item))
                     continue;
 
-                if (item.StartsWith("Member Name:",
-                    StringComparison.OrdinalIgnoreCase))
+                if (item.StartsWith("Member Name:", StringComparison.OrdinalIgnoreCase))
                 {
-                    dto.MemberName =
-                        item.Replace("Member Name:", "").Trim();
+                    dto.MemberName = item.Replace("Member Name:", "").Trim();
                 }
-                else if (item.StartsWith("Account Status:",
-                    StringComparison.OrdinalIgnoreCase))
+                else if (item.StartsWith("Account Status:", StringComparison.OrdinalIgnoreCase))
                 {
-                    dto.AccountStatus =
-                        item.Replace("Account Status:", "").Trim();
+                    dto.AccountStatus = item.Replace("Account Status:", "").Trim();
                 }
-                else if (!item.StartsWith("Member Alerts:",
-                    StringComparison.OrdinalIgnoreCase))
+                else if (!item.StartsWith("Member Alerts:", StringComparison.OrdinalIgnoreCase))
                 {
-                    dto.Alerts.Add(item);
+                    dto.Alerts.Add(item.Trim());
                 }
             }
 
