@@ -1,1 +1,13 @@
+ATTACH DATABASE 'C:\Path\MemberSearchDB.db' AS memberdb;
 
+INSERT INTO memberdb.AccessNumbers
+(
+    AccessNumber,
+    Environment
+)
+SELECT
+    AccessNumber,
+    Environment
+FROM AccessAcctNumbers;
+
+DETACH DATABASE memberdb;
