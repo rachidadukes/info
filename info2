@@ -1,39 +1,64 @@
-using Domain.DTOs;
-
-namespace Domain.Mappers
+public async Task CallVerifyAccountService(
+    string selectedItemAccountNumber,
+    string selectedItemAccountType,
+    string selectedItemEnvironment)
 {
-    public static class VerifyAcctEntityMapper
+    try
     {
-        public static AccountVerificationResponseDTO MapVerifyAcct(
-            this VerifyAccountRs response)
+        var acctObject = new VerifyAcctResponse();
+
+        string xmlStringResponse =
+            await acctObject.GetVerifyAccountXMLResponseAsync(
+                selectedItemAccountNumber,
+                selectedItemAccountType,
+                selectedItemEnvironment);
+
+        var resultWrapper =
+            await acctObject.GetAccountVerifyAsync(xmlStringResponse);
+
+        if (resultWrapper?.Data == null)
         {
-            var dto = new AccountVerificationResponseDTO();
+            MessageBox.Show(
+                "No account verification found.",
+                "Information",
+                MessageBoxButton.OK,
+                MessageBoxImage.Information);
 
-            var messages = response?.RespDisplayData?.InfoMessage;
-
-            if (messages == null)
-                return dto;
-
-            foreach (var item in messages)
-            {
-                if (string.IsNullOrWhiteSpace(item))
-                    continue;
-
-                if (item.StartsWith("Member Name:", StringComparison.OrdinalIgnoreCase))
-                {
-                    dto.MemberName = item.Replace("Member Name:", "").Trim();
-                }
-                else if (item.StartsWith("Account Status:", StringComparison.OrdinalIgnoreCase))
-                {
-                    dto.AccountsStatus = item.Replace("Account Status:", "").Trim();
-                }
-                else if (!item.StartsWith("Member Alerts:", StringComparison.OrdinalIgnoreCase))
-                {
-                    dto.Alerts.Add(item.Trim());
-                }
-            }
-
-            return dto;
+            return;
         }
+
+        AccountVerificationResponseDTO verifyAcctResponse = resultWrapper.Data;
+
+        string message =
+            $"Member Name: {verifyAcctResponse.MemberName}{Environment.NewLine}" +
+            $"Account Status: {verifyAcctResponse.AccountsStatus}{Environment.NewLine}" +
+            $"Member Alerts:{Environment.NewLine}";
+
+        if (verifyAcctResponse.Alerts != null &&
+            verifyAcctResponse.Alerts.Any())
+        {
+            foreach (var alert in verifyAcctResponse.Alerts)
+            {
+                message += alert + Environment.NewLine;
+            }
+        }
+        else
+        {
+            message += "No alerts found.";
+        }
+
+        MessageBox.Show(
+            message,
+            "Host Response",
+            MessageBoxButton.OK,
+            MessageBoxImage.Information);
+    }
+    catch (Exception ex)
+    {
+        MessageBox.Show(
+            ex.Message,
+            "Error",
+            MessageBoxButton.OK,
+            MessageBoxImage.Error);
     }
 }
