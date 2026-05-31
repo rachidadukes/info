@@ -1,19 +1,1 @@
-var messages = response?.RespDisplayData?.InfoMessage;
 
-if (messages == null)
-    return dto;
-
-foreach (var item in messages)
-{
-    if (string.IsNullOrWhiteSpace(item))
-        continue;
-
-    if (item.StartsWith("Member Name:", StringComparison.OrdinalIgnoreCase))
-        dto.MemberName = item.Replace("Member Name:", "").Trim();
-
-    else if (item.StartsWith("Account Status:", StringComparison.OrdinalIgnoreCase))
-        dto.AccountStatus = item.Replace("Account Status:", "").Trim();
-
-    else if (!item.StartsWith("Member Alerts:", StringComparison.OrdinalIgnoreCase))
-        dto.Alerts.Add(item.Trim());
-}
