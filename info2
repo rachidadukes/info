@@ -1,1 +1,24 @@
+private static string BuildVerifiedAcctdUrl(
+    string path,
+    string? environment,
+    bool? verified)
+{
+    var queryParts = new List<string>();
 
+    if (!string.IsNullOrWhiteSpace(environment))
+    {
+        queryParts.Add($"environment={Uri.EscapeDataString(environment)}");
+    }
+
+    if (verified.HasValue)
+    {
+        queryParts.Add($"verified={verified.Value.ToString().ToLower()}");
+    }
+
+    if (queryParts.Count == 0)
+    {
+        return path;
+    }
+
+    return $"{path}?{string.Join("&", queryParts)}";
+}
