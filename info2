@@ -1,27 +1,20 @@
-  if (verified.HasValue)
-    {
-        q = q.Where(r => r.Verified == verified.Value);
-    }
+public async Task<IActionResult> VerifyAccount(...)
 
-    return await q
-        .GroupBy(r => new
-        {
-            r.AccountNumber,
-            r.AccountType,
-            r.Environment,
-            r.Verified
-        })
-        .Select(r => new VerifiedAccountsModel
-        {
-            AccountNumber = r.Key.AccountNumber,
-            AccountType = r.Key.AccountType,
-            Environment = r.Key.Environment,
-            Verified = r.Key.Verified,
-            AccountStatus = r.FirstOrDefault()!.AccountStatus,
-            MemberName = r.FirstOrDefault()!.MemberName,
-            AlertsCount = r.FirstOrDefault()!.AlertsCount
-        })
-        .OrderBy(r => r.AccountNumber)
-        .Take(take)
-        .ToListAsync(ct);
+===================
+private static string Base() => "api/verifyaccount";
+
+public async Task<ResultWrapper<AccountVerificationRespDTO>> VerifyAccountAsync(
+    string selectedApiType,
+    string env,
+    string accountNumber,
+    string accountType,
+    CancellationToken ct = default)
+{
+    var url =
+        $"{Base()}/{Uri.EscapeDataString(selectedApiType)}/{Uri.EscapeDataString(env)}" +
+        $"?accountNumber={Uri.EscapeDataString(accountNumber)}" +
+        $"&accountType={Uri.EscapeDataString(accountType)}";
+
+    return await http.GetFromJsonAsync<ResultWrapper<AccountVerificationRespDTO>>(url, ct)
+           ?? new ResultWrapper<AccountVerificationRespDTO>();
 }
