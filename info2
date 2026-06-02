@@ -1,24 +1,27 @@
-private static string BuildVerifiedAcctdUrl(
-    string path,
-    string? environment,
-    bool? verified)
-{
-    var queryParts = new List<string>();
-
-    if (!string.IsNullOrWhiteSpace(environment))
+  if (verified.HasValue)
     {
-        queryParts.Add($"environment={Uri.EscapeDataString(environment)}");
+        q = q.Where(r => r.Verified == verified.Value);
     }
 
-    if (verified.HasValue)
-    {
-        queryParts.Add($"verified={verified.Value.ToString().ToLower()}");
-    }
-
-    if (queryParts.Count == 0)
-    {
-        return path;
-    }
-
-    return $"{path}?{string.Join("&", queryParts)}";
+    return await q
+        .GroupBy(r => new
+        {
+            r.AccountNumber,
+            r.AccountType,
+            r.Environment,
+            r.Verified
+        })
+        .Select(r => new VerifiedAccountsModel
+        {
+            AccountNumber = r.Key.AccountNumber,
+            AccountType = r.Key.AccountType,
+            Environment = r.Key.Environment,
+            Verified = r.Key.Verified,
+            AccountStatus = r.FirstOrDefault()!.AccountStatus,
+            MemberName = r.FirstOrDefault()!.MemberName,
+            AlertsCount = r.FirstOrDefault()!.AlertsCount
+        })
+        .OrderBy(r => r.AccountNumber)
+        .Take(take)
+        .ToListAsync(ct);
 }
