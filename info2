@@ -1,3 +1,7 @@
-var url = $"api/members/{selectedApiType}/{env}/search/by-access/{Uri.EscapeDataString(accessNumber)}";
 
-var result = await http.GetFromJsonAsync<ResultWrapper<MemberSearchRespDTO>>(url, ct);
+    <div>
+        <p>Member Name: @memberName</p>
+        <p>Account Status: @accountStatus</p>
+        <p>Status Description: @statusDescription</p>
+        <p>Response Code: @responseCode</p>
+    </div>
