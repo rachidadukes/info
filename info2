@@ -1,38 +1,28 @@
-public async Task<ResultWrapper<AccountVerificationRespDTO>> VerifyAccountAsync(
-    string selectedApiType,
-    string env,
-    string accountNumber,
-    string accountType,
-    CancellationToken ct = default)
+private string ResolveEndpoint(string selectedApiType, string env)
 {
     try
     {
-        var url =
-            $"{Base()}/{Uri.EscapeDataString(selectedApiType)}/{Uri.EscapeDataString(env)}" +
-            $"?accountNumber={Uri.EscapeDataString(accountNumber)}" +
-            $"&accountType={Uri.EscapeDataString(accountType)}";
+        var appEnv = ToEnv(env);
 
-        return await http.GetFromJsonAsync<ResultWrapper<AccountVerificationRespDTO>>(url, ct)
-               ?? new ResultWrapper<AccountVerificationRespDTO>
-               {
-                   IsSuccess = false,
-                   ErrorMessage = "No response returned from API."
-               };
-    }
-    catch (HttpRequestException ex)
-    {
-        return new ResultWrapper<AccountVerificationRespDTO>
+        if (selectedApiType == TypeValues.Endpoint.NewEndpoint)
         {
-            IsSuccess = false,
-            ErrorMessage = $"HTTP Error: {ex.Message}"
-        };
+            var uri = _endpointResolver.ResolveNew(
+                ExternalService.VerifyAccount,
+                appEnv);
+
+            return uri.AbsoluteUri;
+        }
+
+        var legacyUri = _endpointResolver.Resolve(
+            ExternalService.VerifyAccount,
+            appEnv);
+
+        return legacyUri.AbsoluteUri;
     }
     catch (Exception ex)
     {
-        return new ResultWrapper<AccountVerificationRespDTO>
-        {
-            IsSuccess = false,
-            ErrorMessage = $"Unexpected Error: {ex.Message}"
-        };
+        throw new InvalidOperationException(
+            $"Failed to resolve endpoint. selectedApiType={selectedApiType}, env={env}. Error: {ex.Message}",
+            ex);
     }
 }
