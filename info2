@@ -1,8 +1,3 @@
-public async Task<IActionResult> VerifyAccount(...)
-
-===================
-private static string Base() => "api/verifyaccount";
-
 public async Task<ResultWrapper<AccountVerificationRespDTO>> VerifyAccountAsync(
     string selectedApiType,
     string env,
@@ -10,11 +5,34 @@ public async Task<ResultWrapper<AccountVerificationRespDTO>> VerifyAccountAsync(
     string accountType,
     CancellationToken ct = default)
 {
-    var url =
-        $"{Base()}/{Uri.EscapeDataString(selectedApiType)}/{Uri.EscapeDataString(env)}" +
-        $"?accountNumber={Uri.EscapeDataString(accountNumber)}" +
-        $"&accountType={Uri.EscapeDataString(accountType)}";
+    try
+    {
+        var url =
+            $"{Base()}/{Uri.EscapeDataString(selectedApiType)}/{Uri.EscapeDataString(env)}" +
+            $"?accountNumber={Uri.EscapeDataString(accountNumber)}" +
+            $"&accountType={Uri.EscapeDataString(accountType)}";
 
-    return await http.GetFromJsonAsync<ResultWrapper<AccountVerificationRespDTO>>(url, ct)
-           ?? new ResultWrapper<AccountVerificationRespDTO>();
+        return await http.GetFromJsonAsync<ResultWrapper<AccountVerificationRespDTO>>(url, ct)
+               ?? new ResultWrapper<AccountVerificationRespDTO>
+               {
+                   IsSuccess = false,
+                   ErrorMessage = "No response returned from API."
+               };
+    }
+    catch (HttpRequestException ex)
+    {
+        return new ResultWrapper<AccountVerificationRespDTO>
+        {
+            IsSuccess = false,
+            ErrorMessage = $"HTTP Error: {ex.Message}"
+        };
+    }
+    catch (Exception ex)
+    {
+        return new ResultWrapper<AccountVerificationRespDTO>
+        {
+            IsSuccess = false,
+            ErrorMessage = $"Unexpected Error: {ex.Message}"
+        };
+    }
 }
