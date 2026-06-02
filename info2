@@ -1,28 +1,29 @@
-private string ResolveEndpoint(string selectedApiType, string env)
-{
-    try
-    {
-        var appEnv = ToEnv(env);
+"ExternalApis": {
+  "Current": "UNIT",
+  "Services": {
+    "MemberProfile": {
+      "UNIT": { "BaseUrl": "..." },
+      "INTG": { "BaseUrl": "..." }
+    },
 
-        if (selectedApiType == TypeValues.Endpoint.NewEndpoint)
-        {
-            var uri = _endpointResolver.ResolveNew(
-                ExternalService.VerifyAccount,
-                appEnv);
+    "MemberSearch": {
+      "UNIT": {
+        "BaseUrl": "...",
+        "NewBaseUrl": "..."
+      },
+      "INTG": {
+        "BaseUrl": "...",
+        "NewBaseUrl": "..."
+      }
+    },
 
-            return uri.AbsoluteUri;
-        }
-
-        var legacyUri = _endpointResolver.Resolve(
-            ExternalService.VerifyAccount,
-            appEnv);
-
-        return legacyUri.AbsoluteUri;
+    "VerifyAccount": {
+      "UNIT": {
+        "BaseUrl": "https://unit-dpa-01-plt0.nfcutest.net:5503/NFBranchExService/FinancialInquiryService"
+      },
+      "INTG": {
+        "BaseUrl": "https://intg-dpa-lb.nfcutest.net:5503/NFBranchExService/FinancialInquiryService"
+      }
     }
-    catch (Exception ex)
-    {
-        throw new InvalidOperationException(
-            $"Failed to resolve endpoint. selectedApiType={selectedApiType}, env={env}. Error: {ex.Message}",
-            ex);
-    }
+  }
 }
