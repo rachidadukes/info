@@ -1,7 +1,19 @@
+@if (alerts?.Any() == true)
+{
+    <RadzenLabel Text="Alerts" Style="color:red; font-weight:300" />
 
-    <div>
-        <p>Member Name: @memberName</p>
-        <p>Account Status: @accountStatus</p>
-        <p>Status Description: @statusDescription</p>
-        <p>Response Code: @responseCode</p>
-    </div>
+    <RadzenDataGrid Data="@alerts"
+                    TItem="string"
+                    AllowFiltering="true"
+                    AllowPaging="true"
+                    PageSize="8"
+                    AllowSorting="true">
+        <Columns>
+            <RadzenDataGridColumn TItem="string" Title="Alert">
+                <Template Context="alert">
+                    @alert
+                </Template>
+            </RadzenDataGridColumn>
+        </Columns>
+    </RadzenDataGrid>
+}
