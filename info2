@@ -1,29 +1,3 @@
-"ExternalApis": {
-  "Current": "UNIT",
-  "Services": {
-    "MemberProfile": {
-      "UNIT": { "BaseUrl": "..." },
-      "INTG": { "BaseUrl": "..." }
-    },
+var url = $"api/members/{selectedApiType}/{env}/search/by-access/{Uri.EscapeDataString(accessNumber)}";
 
-    "MemberSearch": {
-      "UNIT": {
-        "BaseUrl": "...",
-        "NewBaseUrl": "..."
-      },
-      "INTG": {
-        "BaseUrl": "...",
-        "NewBaseUrl": "..."
-      }
-    },
-
-    "VerifyAccount": {
-      "UNIT": {
-        "BaseUrl": "https://unit-dpa-01-plt0.nfcutest.net:5503/NFBranchExService/FinancialInquiryService"
-      },
-      "INTG": {
-        "BaseUrl": "https://intg-dpa-lb.nfcutest.net:5503/NFBranchExService/FinancialInquiryService"
-      }
-    }
-  }
-}
+var result = await http.GetFromJsonAsync<ResultWrapper<MemberSearchRespDTO>>(url, ct);
