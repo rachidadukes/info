@@ -1,9 +1,1 @@
-private static string BuildVerifiedAcctdUrl(
-    string path,
-    string? environment,
-    string verified)
-{
-    return string.IsNullOrWhiteSpace(environment)
-        ? $"{path}?verified={Uri.EscapeDataString(verified)}"
-        : $"{path}?environment={Uri.EscapeDataString(environment)}&verified={Uri.EscapeDataString(verified)}";
-}
+
