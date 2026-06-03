@@ -1,7 +1,37 @@
-public async Task<PagedResult<VerifiedAccountsModel>> GetVerifiedAccountNumbersAsync(
-    string? startsWith = null,
-    int take = 50,
-    int skip = 0,
-    string? environment = null,
-    bool? verified = null,
-    CancellationToken ct = default)
+if (verified.HasValue)
+{
+    q = q.Where(r => r.Verified == verified.Value);
+}
+
+var count = await q.CountAsync(ct);
+
+var result = await q
+    .GroupBy(r => new
+    {
+        r.Id,
+        r.AccountNumber,
+        r.AccountType,
+        r.Environment,
+        r.Verified
+    })
+    .Select(r => new VerifiedAccountsModel
+    {
+        Id = r.Key.Id,
+        AccountNumber = r.Key.AccountNumber,
+        AccountType = r.Key.AccountType,
+        Environment = r.Key.Environment,
+        Verified = r.Key.Verified,
+        AccountStatus = r.FirstOrDefault()!.AccountStatus,
+        MemberName = r.FirstOrDefault()!.MemberName,
+        AlertsCount = r.FirstOrDefault()!.AlertsCount
+    })
+    .OrderBy(r => r.AccountNumber)
+    .Skip(skip)
+    .Take(take)
+    .ToListAsync(ct);
+
+return new PagedResult<VerifiedAccountsModel>
+{
+    Data = result,
+    Count = count
+};
