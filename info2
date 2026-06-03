@@ -1,21 +1,9 @@
-[HttpGet("verifiedaccounts")]
-[EndpointSummary("All Verified Account Numbers")]
-[ProducesResponseType(typeof(PagedResult<VerifiedAccountsModel>), StatusCodes.Status200OK)]
-public async Task<ActionResult<PagedResult<VerifiedAccountsModel>>> GetVerifiedAccounts(
-    [FromQuery] string? startsWith,
-    [FromQuery] int take = 50,
-    [FromQuery] int skip = 0,
-    [FromQuery] string? environment = null,
-    [FromQuery] bool? verified = null,
-    CancellationToken ct = default)
-{
-    var result = await svc.GetVerifiedAccountNumbersAsync(
-        startsWith,
-        take,
-        skip,
-        environment,
-        verified,
-        ct);
-
-    return Ok(result);
-}
+public async Task<PagedResult<VerifiedAccountsModel>> GetVerifiedAccountNumbersAsync(
+    string? environment = null,
+    bool? verified = null,
+    int skip = 0,
+    int take = 50,
+    CancellationToken ct = default) =>
+    await http.GetFromJsonAsync<PagedResult<VerifiedAccountsModel>>(
+        BuildVerifiedAcctdUrl(VerifiedAccountsPath, environment, verified, skip, take), ct)
+    ?? new PagedResult<VerifiedAccountsModel>();
