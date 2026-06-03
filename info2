@@ -1,7 +1,7 @@
-namespace MyApp.Contracts.Dtos;
-
-public sealed class PagedResult<T>
-{
-    public IReadOnlyList<T> Data { get; set; } = [];
-    public int Count { get; set; }
-}
+public async Task<PagedResult<VerifiedAccountsModel>> GetVerifiedAccountNumbersAsync(
+    string? startsWith = null,
+    int take = 50,
+    int skip = 0,
+    string? environment = null,
+    bool? verified = null,
+    CancellationToken ct = default)
