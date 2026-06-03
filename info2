@@ -1,29 +1,23 @@
-private static string BuildVerifiedAcctdUrl(
-    string path,
-    string? environment,
-    bool? verified,
-    int skip,
-    int take)
+async Task LoadAllAccountNumbers()
 {
-    var queryParts = new List<string>();
-
-    if (!string.IsNullOrWhiteSpace(environment))
+    try
     {
-        queryParts.Add($"environment={Uri.EscapeDataString(environment)}");
-    }
+        var result = await Api.GetVerifiedAccountNumbersAsync(
+            selectedEnvironment,
+            Verified,
+            skip: 0,
+            take: 50);
 
-    if (verified.HasValue)
+        AllAccountNumbers = result.Data
+            .Select(x =>
+            {
+                x.Environment = x.Environment?.Trim().ToUpperInvariant();
+                return x;
+            })
+            .ToList();
+    }
+    catch (Exception ex)
     {
-        queryParts.Add($"verified={verified.Value}");
+        ErrorMessage = $"Account numbers load failed: {ex.Message}";
     }
-
-    queryParts.Add($"skip={skip}");
-    queryParts.Add($"take={take}");
-
-    if (queryParts.Count == 0)
-    {
-        return path;
-    }
-
-    return $"{path}?{string.Join("&", queryParts)}";
 }
