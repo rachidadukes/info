@@ -1,9 +1,29 @@
-public async Task<PagedResult<VerifiedAccountsModel>> GetVerifiedAccountNumbersAsync(
-    string? environment = null,
-    bool? verified = null,
-    int skip = 0,
-    int take = 50,
-    CancellationToken ct = default) =>
-    await http.GetFromJsonAsync<PagedResult<VerifiedAccountsModel>>(
-        BuildVerifiedAcctdUrl(VerifiedAccountsPath, environment, verified, skip, take), ct)
-    ?? new PagedResult<VerifiedAccountsModel>();
+private static string BuildVerifiedAcctdUrl(
+    string path,
+    string? environment,
+    bool? verified,
+    int skip,
+    int take)
+{
+    var queryParts = new List<string>();
+
+    if (!string.IsNullOrWhiteSpace(environment))
+    {
+        queryParts.Add($"environment={Uri.EscapeDataString(environment)}");
+    }
+
+    if (verified.HasValue)
+    {
+        queryParts.Add($"verified={verified.Value}");
+    }
+
+    queryParts.Add($"skip={skip}");
+    queryParts.Add($"take={take}");
+
+    if (queryParts.Count == 0)
+    {
+        return path;
+    }
+
+    return $"{path}?{string.Join("&", queryParts)}";
+}
