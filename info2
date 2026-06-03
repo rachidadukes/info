@@ -1,27 +1,15 @@
-private int accountsCount;
+Count="@accountsCount"
 
-async Task LoadAllAccountNumbers()
-{
-    try
-    {
-        var result = await Api.GetVerifiedAccountNumbersAsync(
-            selectedEnvironment,
-            Verified,
-            skip: 0,
-            take: 50);
 
-        AllAccountNumbers = result.Data
-            .Select(x =>
-            {
-                x.Environment = x.Environment?.Trim().ToUpperInvariant();
-                return x;
-            })
-            .ToList();
-
-        accountsCount = result.Count;
-    }
-    catch (Exception ex)
-    {
-        ErrorMessage = $"Account numbers load failed: {ex.Message}";
-    }
-}
+<RadzenDataGrid @ref="gridAccounts"
+                Data="@AllAccountNumbers"
+                Count="@accountsCount"
+                TItem="VerifiedAccountsModel"
+                AllowPaging="true"
+                PageSize="10"
+                AllowSorting="true"
+                AllowFiltering="true"
+                FilterMode="FilterMode.Advanced"
+                SelectionMode="DataGridSelectionMode.Single"
+                RowSelect="@OnAccountNumberSelectionChange"
+                @onchange="OnSelectionChange">
