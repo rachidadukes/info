@@ -1,15 +1,30 @@
-Count="@accountsCount"
+private async Task LoadAccounts(LoadDataArgs args)
+{
+    try
+    {
+        ErrorMessage = "";
 
+        var skip = args.Skip ?? 0;
+        var take = args.Top ?? 10;
 
-<RadzenDataGrid @ref="gridAccounts"
-                Data="@AllAccountNumbers"
-                Count="@accountsCount"
-                TItem="VerifiedAccountsModel"
-                AllowPaging="true"
-                PageSize="10"
-                AllowSorting="true"
-                AllowFiltering="true"
-                FilterMode="FilterMode.Advanced"
-                SelectionMode="DataGridSelectionMode.Single"
-                RowSelect="@OnAccountNumberSelectionChange"
-                @onchange="OnSelectionChange">
+        var result = await Api.GetVerifiedAccountNumbersAsync(
+            selectedEnvironment,
+            Verified,
+            skip: skip,
+            take: take);
+
+        AllAccountNumbers = result.Data
+            .Select(x =>
+            {
+                x.Environment = x.Environment?.Trim().ToUpperInvariant();
+                return x;
+            })
+            .ToList();
+
+        accountsCount = result.Count;
+    }
+    catch (Exception ex)
+    {
+        ErrorMessage = $"Account numbers load failed: {ex.Message}";
+    }
+}
