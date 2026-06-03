@@ -1,10 +1,36 @@
-async Task ReloadTheGrid()
-{
-    ResetVariables();
-    IsSelectionMade = false;
 
-    if (gridAccounts is not null)
+private bool firstGridLoadDone;
+
+protected override async Task OnAfterRenderAsync(bool firstRender)
+{
+    if (firstRender && !firstGridLoadDone)
     {
-        await gridAccounts.FirstPage(true);
+        firstGridLoadDone = true;
+
+        if (gridAccounts is not null)
+        {
+            await gridAccounts.FirstPage(true);
+        }
+    }
+}
+
+
+
+
+protected override async Task OnInitializedAsync()
+{
+    try
+    {
+        ResetVariables();
+        LoadingMessage = "Loading account data...";
+        await Task.CompletedTask;
+    }
+    catch (Exception ex)
+    {
+        ErrorMessage = $"Error during initialization: {ex.Message}";
+    }
+    finally
+    {
+        LoadingMessage = "";
     }
 }
