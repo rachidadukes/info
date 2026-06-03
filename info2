@@ -1,13 +1,10 @@
-<RadzenDataGrid @ref="gridAccounts"
-                Data="@AllAccountNumbers"
-                Count="@accountsCount"
-                LoadData="@LoadAccounts"
-                TItem="VerifiedAccountsModel"
-                AllowPaging="true"
-                PageSize="10"
-                AllowSorting="true"
-                AllowFiltering="true"
-                FilterMode="FilterMode.Advanced"
-                SelectionMode="DataGridSelectionMode.Single"
-                RowSelect="@OnAccountNumberSelectionChange"
-                @onchange="OnSelectionChange">
+async Task ReloadTheGrid()
+{
+    ResetVariables();
+    IsSelectionMade = false;
+
+    if (gridAccounts is not null)
+    {
+        await gridAccounts.FirstPage(true);
+    }
+}
