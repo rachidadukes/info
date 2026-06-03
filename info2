@@ -1,19 +1,39 @@
-@if (alerts?.Any() == true)
-{
-    <RadzenLabel Text="Alerts" Style="color:red; font-weight:300" />
+var q = db.VerifiedAccounts.AsNoTracking()
+    .Where(r => r.AccountNumber != null);
 
-    <RadzenDataGrid Data="@alerts"
-                    TItem="string"
-                    AllowFiltering="true"
-                    AllowPaging="true"
-                    PageSize="8"
-                    AllowSorting="true">
-        <Columns>
-            <RadzenDataGridColumn TItem="string" Title="Alert">
-                <Template Context="alert">
-                    @alert
-                </Template>
-            </RadzenDataGridColumn>
-        </Columns>
-    </RadzenDataGrid>
+if (!string.IsNullOrWhiteSpace(startsWith))
+{
+    q = q.Where(r => r.AccountNumber!.StartsWith(startsWith));
 }
+
+if (!string.IsNullOrWhiteSpace(environment))
+{
+    q = q.Where(r => r.Environment == environment);
+}
+
+if (verified.HasValue)
+{
+    q = q.Where(r => r.Verified == verified.Value);
+}
+
+var result = await q
+    .GroupBy(r => new
+    {
+        r.AccountNumber,
+        r.AccountType,
+        r.Environment,
+        r.Verified
+    })
+    .Select(g => new VerifiedAccountsModel
+    {
+        AccountNumber = g.Key.AccountNumber,
+        AccountType = g.Key.AccountType,
+        Environment = g.Key.Environment,
+        Verified = g.Key.Verified,
+        AccountStatus = g.FirstOrDefault()!.AccountStatus,
+        MemberName = g.FirstOrDefault()!.MemberName,
+        AlertsCount = g.FirstOrDefault()!.AlertsCount
+    })
+    .OrderBy(r => r.AccountNumber)
+    .Take(take)
+    .ToListAsync(ct);
