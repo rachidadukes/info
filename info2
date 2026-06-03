@@ -1,3 +1,5 @@
+private int accountsCount;
+
 async Task LoadAllAccountNumbers()
 {
     try
@@ -15,6 +17,8 @@ async Task LoadAllAccountNumbers()
                 return x;
             })
             .ToList();
+
+        accountsCount = result.Count;
     }
     catch (Exception ex)
     {
