@@ -1,66 +1,48 @@
 
+var query = q
+    .GroupBy(r => new
+    {
+        r.Id,
+        r.AccountNumber,
+        r.AccountType,
+        r.Environment,
+        r.Verified
+    })
+    .Select(r => new VerifiedAccountsModel
+    {
+        Id = r.Key.Id,
+        AccountNumber = r.Key.AccountNumber,
+        AccountType = r.Key.AccountType,
+        Environment = r.Key.Environment,
+        Verified = r.Key.Verified,
+        AccountStatus = r.FirstOrDefault()!.AccountStatus,
+        MemberName = r.FirstOrDefault()!.MemberName,
+        AlertsCount = r.FirstOrDefault()!.AlertsCount
+    });
 
-var q = db.VerifiedAccounts.AsNoTracking()
-    .Where(r => r.AccountNumber != null);
-
-if (!string.IsNullOrWhiteSpace(startsWith))
+if (!string.IsNullOrWhiteSpace(filter))
 {
-    q = q.Where(r => r.AccountNumber!.StartsWith(startsWith));
+    query = query.Where(filter);
 }
 
-if (!string.IsNullOrWhiteSpace(environment))
+var count = await query.CountAsync(ct);
+
+if (!string.IsNullOrWhiteSpace(orderBy))
 {
-    q = q.Where(r => r.Environment == environment);
+    query = query.OrderBy(orderBy);
+}
+else
+{
+    query = query.OrderBy(r => r.AccountNumber);
 }
 
-if (verified.HasValue)
+var result = await query
+    .Skip(skip)
+    .Take(take)
+    .ToListAsync(ct);
+
+return new PagedResult<VerifiedAccountsModel>
 {
-    q = q.Where(r => r.Verified == verified.Value);
-}
-
-
-=====================
-Install-Package System.Linq.Dynamic.Core
-==================
-
-ReferenceDataService.cs
-
-public async Task<PagedResult<VerifiedAccountsModel>> GetVerifiedAccountNumbersAsync(
-    string? startsWith = null,
-    int take = 50,
-    int skip = 0,
-    string? environment = null,
-    bool? verified = null,
-    string? filter = null,
-    string? orderBy = null,
-    CancellationToken ct = default)
-
-=============================================
-ReferenceDataController.cs
-
-
-[HttpGet("verifiedaccounts")]
-[EndpointSummary("All Verified Account Numbers")]
-[ProducesResponseType(typeof(PagedResult<VerifiedAccountsModel>), StatusCodes.Status200OK)]
-public async Task<ActionResult<PagedResult<VerifiedAccountsModel>>> GetVerifiedAccounts(
-    [FromQuery] string? startsWith,
-    [FromQuery] int take = 50,
-    [FromQuery] int skip = 0,
-    [FromQuery] string? environment = null,
-    [FromQuery] bool? verified = null,
-    [FromQuery] string? filter = null,
-    [FromQuery] string? orderBy = null,
-    CancellationToken ct = default)
-{
-    var result = await svc.GetVerifiedAccountNumbersAsync(
-        startsWith,
-        take,
-        skip,
-        environment,
-        verified,
-        filter,
-        orderBy,
-        ct);
-
-    return Ok(result);
-}
+    Data = result,
+    Count = count
+};
