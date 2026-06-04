@@ -1,36 +1,75 @@
-
-private bool firstGridLoadDone;
-
-protected override async Task OnAfterRenderAsync(bool firstRender)
+private static string BuildVerifiedAcctdUrl(
+    string path,
+    string? environment,
+    bool? verified,
+    int skip,
+    int take,
+    string? filter,
+    string? orderBy)
 {
-    if (firstRender && !firstGridLoadDone)
-    {
-        firstGridLoadDone = true;
+    var queryParts = new List<string>();
 
-        if (gridAccounts is not null)
-        {
-            await gridAccounts.FirstPage(true);
-        }
+    if (!string.IsNullOrWhiteSpace(environment))
+    {
+        queryParts.Add($"environment={Uri.EscapeDataString(environment)}");
     }
+
+    if (verified.HasValue)
+    {
+        queryParts.Add($"verified={verified.Value}");
+    }
+
+    queryParts.Add($"skip={skip}");
+    queryParts.Add($"take={take}");
+
+    if (!string.IsNullOrWhiteSpace(filter))
+    {
+        queryParts.Add($"filter={Uri.EscapeDataString(filter)}");
+    }
+
+    if (!string.IsNullOrWhiteSpace(orderBy))
+    {
+        queryParts.Add($"orderBy={Uri.EscapeDataString(orderBy)}");
+    }
+
+    return queryParts.Count == 0
+        ? path
+        : $"{path}?{string.Join("&", queryParts)}";
 }
+=========================
+LookupApi.cs
 
 
+public async Task<PagedResult<VerifiedAccountsModel>> GetVerifiedAccountNumbersAsync(
+    string? environment = null,
+    bool? verified = null,
+    int skip = 0,
+    int take = 50,
+    string? filter = null,
+    string? orderBy = null,
+    CancellationToken ct = default) =>
+    await http.GetFromJsonAsync<PagedResult<VerifiedAccountsModel>>(
+        BuildVerifiedAcctdUrl(VerifiedAccountsPath, environment, verified, skip, take, filter, orderBy), ct)
+    ?? new PagedResult<VerifiedAccountsModel>();
 
+====================
+ILookupApi
 
-protected override async Task OnInitializedAsync()
-{
-    try
-    {
-        ResetVariables();
-        LoadingMessage = "Loading account data...";
-        await Task.CompletedTask;
-    }
-    catch (Exception ex)
-    {
-        ErrorMessage = $"Error during initialization: {ex.Message}";
-    }
-    finally
-    {
-        LoadingMessage = "";
-    }
-}
+Task<PagedResult<VerifiedAccountsModel>> GetVerifiedAccountNumbersAsync(
+    string? environment = null,
+    bool? verified = null,
+    int skip = 0,
+    int take = 50,
+    string? filter = null,
+    string? orderBy = null,
+    CancellationToken ct = default);
+
+=====================
+
+var result = await Api.GetVerifiedAccountNumbersAsync(
+    selectedEnvironment,
+    Verified,
+    skip: skip,
+    take: take,
+    filter: args.Filter,
+    orderBy: args.OrderBy);
