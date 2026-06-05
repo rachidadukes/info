@@ -1,13 +1,21 @@
-namespace Entities
-{
-    public class UserSelectionModel
-    {
-        public string? Environment { get; set; }
-        public string? APIType { get; set; }
-        public string? TransactionType { get; set; }
+var selectionService = new UserSelectionService();
 
-        public string? AccessNumber { get; set; }
-        public string? AccountNumber { get; set; }
-        public string? AccountType { get; set; }
-    }
-}
+var userSelection = selectionService.GetUserSelections();
+
+var dataService = new DataService();
+
+var accessNumbers =
+    await dataService.GetAccessNumbersAsync(userSelection.Environment);
+
+selectionService.SelectAccessNumber(
+    userSelection,
+    accessNumbers);
+
+AnsiConsole.MarkupLine(
+    $"Environment: [yellow]{userSelection.Environment}[/]");
+
+AnsiConsole.MarkupLine(
+    $"API Type: [yellow]{userSelection.APIType}[/]");
+
+AnsiConsole.MarkupLine(
+    $"Access Number: [yellow]{userSelection.AccessNumber}[/]");
