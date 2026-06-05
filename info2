@@ -1,47 +1,13 @@
-
-using Entities;
-using Spectre.Console;
-
-namespace Services;
-
-public class UserSelectionService
+namespace Entities
 {
-    public UserSelectionModel GetUserSelections()
+    public class UserSelectionModel
     {
-        var model = new UserSelectionModel();
+        public string? Environment { get; set; }
+        public string? APIType { get; set; }
+        public string? TransactionType { get; set; }
 
-        // API Type
-        var apiTypes = new List<string> { "Legacy", "New" };
-
-        model.APIType = AnsiConsole.Prompt(
-            new SelectionPrompt<string>()
-                .Title("Select API Type")
-                .PageSize(10)
-                .AddChoices(apiTypes));
-
-        // Environment
-        var environments = new List<string> { "UNIT", "INTG" };
-
-        model.Environment = AnsiConsole.Prompt(
-            new SelectionPrompt<string>()
-                .Title("Select Environment")
-                .PageSize(10)
-                .AddChoices(environments));
-
-        return model;
-    }
-
-    public void SelectAccessNumber(
-        UserSelectionModel model,
-        List<AccessNumbersModel> accessNumbers)
-    {
-        var selected = AnsiConsole.Prompt(
-            new SelectionPrompt<AccessNumbersModel>()
-                .Title("Access Number Selection")
-                .PageSize(10)
-                .UseConverter(x => x.AccessNumber ?? string.Empty)
-                .AddChoices(accessNumbers));
-
-        model.AccessNumber = selected.AccessNumber;
+        public string? AccessNumber { get; set; }
+        public string? AccountNumber { get; set; }
+        public string? AccountType { get; set; }
     }
 }
