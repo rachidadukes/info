@@ -1,21 +1,21 @@
-var selectionService = new UserSelectionService();
+using Spectre.Console;
 
-var userSelection = selectionService.GetUserSelections();
+public class ColorOption
+{
+    public string Option { get; set; } = "";
+    public string Color { get; set; } = "";
 
-var dataService = new DataService();
+    public override string ToString()
+        => $"{Option} ({Color})";
+}
 
-var accessNumbers =
-    await dataService.GetAccessNumbersAsync(userSelection.Environment);
+var selected = AnsiConsole.Prompt(
+    new SelectionPrompt<ColorOption>()
+        .Title("Select an option:")
+        .AddChoices(
+            new ColorOption { Option = "Option 1", Color = "Color 1" },
+            new ColorOption { Option = "Option 2", Color = "Color 2" }
+        ));
 
-selectionService.SelectAccessNumber(
-    userSelection,
-    accessNumbers);
-
-AnsiConsole.MarkupLine(
-    $"Environment: [yellow]{userSelection.Environment}[/]");
-
-AnsiConsole.MarkupLine(
-    $"API Type: [yellow]{userSelection.APIType}[/]");
-
-AnsiConsole.MarkupLine(
-    $"Access Number: [yellow]{userSelection.AccessNumber}[/]");
+AnsiConsole.WriteLine(
+    $"Selected: {selected.Option}, Color: {selected.Color}");
