@@ -1,28 +1,6 @@
-if (userSelection.TransactionType == TypeValues.TransactionType.MemberSearch)
-{
-    AnsiConsole.MarkupLine(
-        $"Transaction Type: [yellow]{userSelection.TransactionType}[/]");
-
-    selectionService.SelectMemberSearchType(userSelection);
-
-    if (userSelection.MemberSearchType ==
-        TypeValues.MemberSearchType.MemberSearchAccessNumber)
-    {
-        await HandleMemberSearchByAccessNumber(userSelection);
-    }
-}
-
-async Task HandleMemberSearchByAccessNumber(UserSelection userSelection)
-{
-    AnsiConsole.MarkupLine(
-        $"Member Search Type: [yellow]{userSelection.MemberSearchType}[/]");
-
-    string hostResponse = null;
-
-    var apiObject = new MemberSearchByAccessNumber();
-
-    userSelection.AccessNumber =
-        await apiObject.SelectAccessNumber(userSelection.Environment);
-
-    hostResponse = await apiObject.CallAPI(userSelection);
-}
+var prompt = new SelectionPrompt<AccountNumbersModel>()
+    .Title("Account Number Selection")
+    .PageSize(10)
+    .UseConverter(x => $"{x.AccountNumber ?? ""} - {x.AccountType ?? ""}")
+    .MoreChoicesText("[grey](Move up and down to reveal more items)[/]")
+    .AddChoices(listResult);
