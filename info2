@@ -1,21 +1,28 @@
-using Spectre.Console;
-
-public class ColorOption
+if (userSelection.TransactionType == TypeValues.TransactionType.MemberSearch)
 {
-    public string Option { get; set; } = "";
-    public string Color { get; set; } = "";
+    AnsiConsole.MarkupLine(
+        $"Transaction Type: [yellow]{userSelection.TransactionType}[/]");
 
-    public override string ToString()
-        => $"{Option} ({Color})";
+    selectionService.SelectMemberSearchType(userSelection);
+
+    if (userSelection.MemberSearchType ==
+        TypeValues.MemberSearchType.MemberSearchAccessNumber)
+    {
+        await HandleMemberSearchByAccessNumber(userSelection);
+    }
 }
 
-var selected = AnsiConsole.Prompt(
-    new SelectionPrompt<ColorOption>()
-        .Title("Select an option:")
-        .AddChoices(
-            new ColorOption { Option = "Option 1", Color = "Color 1" },
-            new ColorOption { Option = "Option 2", Color = "Color 2" }
-        ));
+async Task HandleMemberSearchByAccessNumber(UserSelection userSelection)
+{
+    AnsiConsole.MarkupLine(
+        $"Member Search Type: [yellow]{userSelection.MemberSearchType}[/]");
 
-AnsiConsole.WriteLine(
-    $"Selected: {selected.Option}, Color: {selected.Color}");
+    string hostResponse = null;
+
+    var apiObject = new MemberSearchByAccessNumber();
+
+    userSelection.AccessNumber =
+        await apiObject.SelectAccessNumber(userSelection.Environment);
+
+    hostResponse = await apiObject.CallAPI(userSelection);
+}
