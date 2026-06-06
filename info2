@@ -1,6 +1,6 @@
-var prompt = new SelectionPrompt<AccountNumbersModel>()
-    .Title("Account Number Selection")
-    .PageSize(10)
-    .UseConverter(x => $"{x.AccountNumber ?? ""} - {x.AccountType ?? ""}")
-    .MoreChoicesText("[grey](Move up and down to reveal more items)[/]")
-    .AddChoices(listResult);
+AnsiConsole.MarkupLine(
+    $"You selected Account Number: [yellow]{selectedAccessNumber.AccountNumber}[/] " +
+    $"Account Type: [yellow]{selectedAccessNumber.AccountType}[/]");
+
+userSelection.AccountNumber = selectedAccessNumber?.AccountNumber;
+userSelection.AccountType = selectedAccessNumber?.AccountType;
