@@ -1,6 +1,1 @@
-AnsiConsole.MarkupLine(
-    $"You selected Account Number: [yellow]{selectedAccessNumber.AccountNumber}[/] " +
-    $"Account Type: [yellow]{selectedAccessNumber.AccountType}[/]");
 
-userSelection.AccountNumber = selectedAccessNumber?.AccountNumber;
-userSelection.AccountType = selectedAccessNumber?.AccountType;
