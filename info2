@@ -3,21 +3,47 @@ public static CD_DepositResponseDTO MapCD_Deposit(
 {
     var dto = new CD_DepositResponseDTO();
 
-    var corrections = response?.FinancialPostingServiceInfo?.Corrections;
+    var info = response?.FinancialPostingServiceInfo;
 
-    if (corrections?.CorrectionInd == null)
+    if (info == null)
         return dto;
 
-    dto.TranCode = corrections.CorrectionInd.TranCode;
-    dto.FileId = corrections.CorrectionInd.FileId;
-    dto.UId = corrections.CorrectionInd.UId;
+    // ETS Status
+    dto.ETSTranStatus = info.ETSTranStatus;
+
+    // Messages
+    dto.Messages = info.RespDisplayData?.InfoMessage?.ToList()
+                   ?? new List<string>();
+
+    // Correction Data
+    var correction = info.Corrections?.CorrectionInd;
+
+    if (correction != null)
+    {
+        dto.TranCode = correction.TranCode;
+        dto.FileId = correction.FileId;
+        dto.UId = correction.UId;
+    }
 
     return dto;
 }
 
+
+==================
+
 public class CD_DepositResponseDTO
 {
+    public string? ETSTranStatus { get; set; }
+
+    public List<string> Messages { get; set; } = new();
+
     public int TranCode { get; set; }
+
     public int FileId { get; set; }
+
     public string? UId { get; set; }
 }
+
+
+
+
