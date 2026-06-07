@@ -1,1 +1,74 @@
+using System.Xml.Serialization;
 
+[XmlRoot("FinancialPostingServiceRs")]
+public class CD_DepositRs
+{
+    [XmlElement("MsgRsHdr")]
+    public MsgRsHdr? MsgRsHdr { get; set; }
+
+    [XmlElement("FinancialPostingServiceInfo")]
+    public FinancialPostingServiceInfo? FinancialPostingServiceInfo { get; set; }
+}
+
+public class MsgRsHdr
+{
+    [XmlElement("RqUID")]
+    public string? RqUID { get; set; }
+
+    [XmlElement("TransactionTime")]
+    public string? TransactionTime { get; set; }
+
+    [XmlElement("Status")]
+    public Status? Status { get; set; }
+
+    [XmlElement("ResponseCode")]
+    public int ResponseCode { get; set; }
+}
+
+public class Status
+{
+    [XmlElement("Severity")]
+    public int Severity { get; set; }
+
+    [XmlElement("StatusCode")]
+    public int StatusCode { get; set; }
+
+    [XmlElement("StatusDesc")]
+    public string? StatusDesc { get; set; }
+}
+
+public class FinancialPostingServiceInfo
+{
+    [XmlElement("ETSTranStatus")]
+    public string? ETSTranStatus { get; set; }
+
+    [XmlElement("RespDisplayData")]
+    public RespDisplayData? RespDisplayData { get; set; }
+
+    [XmlElement("Corrections")]
+    public Corrections? Corrections { get; set; }
+}
+
+public class RespDisplayData
+{
+    [XmlElement("InfoMessage")]
+    public List<string> InfoMessage { get; set; } = new();
+}
+
+public class Corrections
+{
+    [XmlElement("CorrectionInd")]
+    public CorrectionInd? CorrectionInd { get; set; }
+}
+
+public class CorrectionInd
+{
+    [XmlElement("TranCode")]
+    public int TranCode { get; set; }
+
+    [XmlElement("FileId")]
+    public int FileId { get; set; }
+
+    [XmlElement("UId")]
+    public string? UId { get; set; }
+}
