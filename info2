@@ -1,1 +1,17 @@
 
+ATTACH DATABASE 'C:\Path\AccountsDB.db' AS AccountsDB;
+ATTACH DATABASE 'C:\Path\ApiDB.db' AS ApiDB;
+
+INSERT INTO ApiDB.AccessAcctNumbers
+(
+    AccessNumber,
+    AccountNumber,
+    AccountType,
+    Environment
+)
+SELECT
+    AccessNumber,
+    AccountNumber,
+    AccountType,
+    Environment
+FROM AccountsDB.AccessAcctNumbers;
