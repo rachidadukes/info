@@ -1,2 +1,31 @@
-var accountSearch = AnsiConsole.Ask<string>(
-    "[green]Enter Account Number (partial or full):[/]");
+ the bottom logic with this:
+
+Dim codesCsv As String = If(If(section IsNot Nothing,
+    section(MessageConverterValues.ConfigKeys.RMHostTranCodes), Nothing), String.Empty)
+
+If String.IsNullOrWhiteSpace(codesCsv) Then
+    Return MessageConverterValues.HostRoutes.LegacyEndpoint
+End If
+
+Dim codes As New HashSet(Of String)(
+    codesCsv.Split(New Char() {","c}, StringSplitOptions.RemoveEmptyEntries).
+    Select(Function(s) s.Trim()),
+    StringComparer.OrdinalIgnoreCase)
+
+Dim doc As XDocument = XDocument.Parse(xml)
+Dim tranCode As String = doc.Descendants("TranCode").FirstOrDefault()?.Value?.Trim()
+
+If String.IsNullOrEmpty(tranCode) OrElse Not codes.Contains(tranCode) Then
+    Return MessageConverterValues.HostRoutes.LegacyEndpoint
+End If
+
+Select Case routingMode
+    Case MessageConverterValues.HostRoutes.NewEndpoint
+        Return MessageConverterValues.HostRoutes.NewEndpoint
+
+    Case MessageConverterValues.HostRoutes.BothEndpoints
+        Return MessageConverterValues.HostRoutes.BothEndpoints
+
+    Case Else
+        Return MessageConverterValues.HostRoutes.LegacyEndpoint
+End Select
