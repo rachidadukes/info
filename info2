@@ -1,61 +1,153 @@
-private void cmbTransactionType_SelectionChanged(object sender, SelectionChangedEventArgs e)
-{
-    selectedTransactionType = cmbTransactionType.SelectedItem?.ToString() ?? string.Empty;
+<Window x:Class="YourNamespace.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="TextBoxes and Tabs"
+        Height="600"
+        Width="800"
+        WindowStartupLocation="CenterScreen">
 
-    if (string.IsNullOrWhiteSpace(selectedTransactionType))
-    {
-        txtURL.Text = string.Empty;
-        MemberSearchOptionsPanel.Visibility = Visibility.Collapsed;
-        return;
-    }
+    <Grid Margin="15">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
 
-    LoadUrlForSelectedTransactionType();
+        <!-- First TextBox -->
+        <TextBox Grid.Row="0"
+                 Height="35"
+                 Margin="0,0,0,10"
+                 FontSize="16"
+                 VerticalContentAlignment="Center"
+                 Text="First TextBox" />
 
-    MemberSearchOptionsPanel.Visibility =
-        selectedTransactionType == "Member Search"
-            ? Visibility.Visible
-            : Visibility.Collapsed;
-}
+        <!-- Second TextBox -->
+        <TextBox Grid.Row="1"
+                 Height="35"
+                 Margin="0,0,0,15"
+                 FontSize="16"
+                 VerticalContentAlignment="Center"
+                 Text="Second TextBox" />
 
+        <!-- Tabs -->
+        <TabControl Grid.Row="2">
 
-==================
+            <!-- Tab 1 -->
+            <TabItem Header="Tab 1">
+                <Grid Margin="10">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
 
-private void LoadUrlForSelectedTransactionType()
-{
-    string dbPath = "ApiDB.db";
+                    <ListView Grid.Row="0"
+                              Margin="0,0,0,10">
+                        <ListViewItem Content="Tab 1 Item 1"/>
+                        <ListViewItem Content="Tab 1 Item 2"/>
+                        <ListViewItem Content="Tab 1 Item 3"/>
+                    </ListView>
 
-    using var connection = new SQLiteConnection($"Data Source={dbPath};Version=3;");
-    connection.Open();
+                    <Button Grid.Row="1"
+                            Width="120"
+                            Height="35"
+                            HorizontalAlignment="Right"
+                            Content="Button 1"/>
+                </Grid>
+            </TabItem>
 
-    string sql = @"
-        SELECT Endpoint
-        FROM URL
-        WHERE Type = @Type
-          AND Environment = @Environment
-          AND ApiType = @ApiType
-        LIMIT 1;";
+            <!-- Tab 2 -->
+            <TabItem Header="Tab 2">
+                <Grid Margin="10">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
 
-    using var command = new SQLiteCommand(sql, connection);
+                    <ListView Grid.Row="0"
+                              Margin="0,0,0,10">
+                        <ListViewItem Content="Tab 2 Item 1"/>
+                        <ListViewItem Content="Tab 2 Item 2"/>
+                        <ListViewItem Content="Tab 2 Item 3"/>
+                    </ListView>
 
-    command.Parameters.AddWithValue("@Type", selectedTransactionType);
-    command.Parameters.AddWithValue("@Environment", SelectedEnvironment);
-    command.Parameters.AddWithValue("@ApiType", SelectedAPIType);
+                    <Button Grid.Row="1"
+                            Width="120"
+                            Height="35"
+                            HorizontalAlignment="Right"
+                            Content="Button 2"/>
+                </Grid>
+            </TabItem>
 
-    object result = command.ExecuteScalar();
+            <!-- Tab 3 -->
+            <TabItem Header="Tab 3">
+                <Grid Margin="10">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
 
-    txtURL.Text = result?.ToString() ?? string.Empty;
-}
+                    <ListView Grid.Row="0"
+                              Margin="0,0,0,10">
+                        <ListViewItem Content="Tab 3 Item 1"/>
+                        <ListViewItem Content="Tab 3 Item 2"/>
+                        <ListViewItem Content="Tab 3 Item 3"/>
+                    </ListView>
 
+                    <Button Grid.Row="1"
+                            Width="120"
+                            Height="35"
+                            HorizontalAlignment="Right"
+                            Content="Button 3"/>
+                </Grid>
+            </TabItem>
 
-=====================
+            <!-- Tab 4 -->
+            <TabItem Header="Tab 4">
+                <Grid Margin="10">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
 
+                    <ListView Grid.Row="0"
+                              Margin="0,0,0,10">
+                        <ListViewItem Content="Tab 4 Item 1"/>
+                        <ListViewItem Content="Tab 4 Item 2"/>
+                        <ListViewItem Content="Tab 4 Item 3"/>
+                    </ListView>
 
-using System.Data.SQLite;
+                    <Button Grid.Row="1"
+                            Width="120"
+                            Height="35"
+                            HorizontalAlignment="Right"
+                            Content="Button 4"/>
+                </Grid>
+            </TabItem>
 
-Also make sure your TransactionType ComboBox items are plain strings. If they are ComboBoxItem, use this instead:
+            <!-- Tab 5 -->
+            <TabItem Header="Tab 5">
+                <Grid Margin="10">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
 
-selectedTransactionType =
-    ((ComboBoxItem)cmbTransactionType.SelectedItem)?.Content?.ToString() ?? string.Empty;
+                    <ListView Grid.Row="0"
+                              Margin="0,0,0,10">
+                        <ListViewItem Content="Tab 5 Item 1"/>
+                        <ListViewItem Content="Tab 5 Item 2"/>
+                        <ListViewItem Content="Tab 5 Item 3"/>
+                    </ListView>
 
-    txtURL.Text = result?.ToString() ?? string.Empty;
-}
+                    <Button Grid.Row="1"
+                            Width="120"
+                            Height="35"
+                            HorizontalAlignment="Right"
+                            Content="Button 5"/>
+                </Grid>
+            </TabItem>
+
+        </TabControl>
+    </Grid>
+
+</Window>
