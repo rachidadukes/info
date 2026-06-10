@@ -1,89 +1,9 @@
-<Window.Resources>
+<TextBox Grid.Row="0"
+         Background="#F8FAFC"
+         Foreground="#0F172A"
+         BorderBrush="#CBD5E1"/>
 
-    <!-- Beautiful TextBox -->
-    <Style TargetType="TextBox">
-        <Setter Property="Height" Value="38"/>
-        <Setter Property="FontSize" Value="15"/>
-        <Setter Property="Padding" Value="12,0"/>
-        <Setter Property="VerticalContentAlignment" Value="Center"/>
-        <Setter Property="Background" Value="#F8FAFC"/>
-        <Setter Property="BorderBrush" Value="#CBD5E1"/>
-        <Setter Property="BorderThickness" Value="1"/>
-        <Setter Property="Foreground" Value="#1E293B"/>
-        <Setter Property="SnapsToDevicePixels" Value="True"/>
-
-        <Setter Property="Template">
-            <Setter.Value>
-                <ControlTemplate TargetType="TextBox">
-                    <Border x:Name="border"
-                            Background="{TemplateBinding Background}"
-                            BorderBrush="{TemplateBinding BorderBrush}"
-                            BorderThickness="{TemplateBinding BorderThickness}"
-                            CornerRadius="8">
-                        <ScrollViewer x:Name="PART_ContentHost"
-                                      Margin="{TemplateBinding Padding}"/>
-                    </Border>
-
-                    <ControlTemplate.Triggers>
-                        <Trigger Property="IsMouseOver" Value="True">
-                            <Setter TargetName="border" Property="BorderBrush" Value="#60A5FA"/>
-                        </Trigger>
-
-                        <Trigger Property="IsKeyboardFocused" Value="True">
-                            <Setter TargetName="border" Property="BorderBrush" Value="#2563EB"/>
-                            <Setter TargetName="border" Property="BorderThickness" Value="2"/>
-                        </Trigger>
-                    </ControlTemplate.Triggers>
-                </ControlTemplate>
-            </Setter.Value>
-        </Setter>
-    </Style>
-
-
-    <!-- Beautiful TabControl -->
-    <Style TargetType="TabControl">
-        <Setter Property="Background" Value="White"/>
-        <Setter Property="BorderBrush" Value="#CBD5E1"/>
-        <Setter Property="BorderThickness" Value="1"/>
-        <Setter Property="Padding" Value="0"/>
-    </Style>
-
-
-    <!-- Beautiful Tabs -->
-    <Style TargetType="TabItem">
-        <Setter Property="FontSize" Value="14"/>
-        <Setter Property="FontWeight" Value="SemiBold"/>
-        <Setter Property="Foreground" Value="#475569"/>
-        <Setter Property="Background" Value="#E2E8F0"/>
-        <Setter Property="Padding" Value="18,8"/>
-        <Setter Property="Margin" Value="0,0,4,0"/>
-
-        <Setter Property="Template">
-            <Setter.Value>
-                <ControlTemplate TargetType="TabItem">
-                    <Border x:Name="tabBorder"
-                            Background="{TemplateBinding Background}"
-                            CornerRadius="8,8,0,0"
-                            Padding="{TemplateBinding Padding}">
-                        <ContentPresenter ContentSource="Header"
-                                          HorizontalAlignment="Center"
-                                          VerticalAlignment="Center"/>
-                    </Border>
-
-                    <ControlTemplate.Triggers>
-                        <Trigger Property="IsSelected" Value="True">
-                            <Setter TargetName="tabBorder" Property="Background" Value="#2563EB"/>
-                            <Setter Property="Foreground" Value="White"/>
-                        </Trigger>
-
-                        <Trigger Property="IsMouseOver" Value="True">
-                            <Setter TargetName="tabBorder" Property="Background" Value="#93C5FD"/>
-                            <Setter Property="Foreground" Value="#0F172A"/>
-                        </Trigger>
-                    </ControlTemplate.Triggers>
-                </ControlTemplate>
-            </Setter.Value>
-        </Setter>
-    </Style>
-
-</Window.Resources>
+<TextBox Grid.Row="1"
+         Background="#EEF2FF"
+         Foreground="#3730A3"
+         BorderBrush="#818CF8"/>
