@@ -1,6 +1,61 @@
-<Grid.RowDefinitions>
-    <RowDefinition Height="45"/>   <!-- Comboboxes -->
-    <RowDefinition Height="40"/>   <!-- Radio Buttons -->
-    <RowDefinition Height="25"/>   <!-- URL -->
-    <RowDefinition Height="*"/>    <!-- Main Content -->
-</Grid.RowDefinitions>
+private void cmbTransactionType_SelectionChanged(object sender, SelectionChangedEventArgs e)
+{
+    selectedTransactionType = cmbTransactionType.SelectedItem?.ToString() ?? string.Empty;
+
+    if (string.IsNullOrWhiteSpace(selectedTransactionType))
+    {
+        txtURL.Text = string.Empty;
+        MemberSearchOptionsPanel.Visibility = Visibility.Collapsed;
+        return;
+    }
+
+    LoadUrlForSelectedTransactionType();
+
+    MemberSearchOptionsPanel.Visibility =
+        selectedTransactionType == "Member Search"
+            ? Visibility.Visible
+            : Visibility.Collapsed;
+}
+
+
+==================
+
+private void LoadUrlForSelectedTransactionType()
+{
+    string dbPath = "ApiDB.db";
+
+    using var connection = new SQLiteConnection($"Data Source={dbPath};Version=3;");
+    connection.Open();
+
+    string sql = @"
+        SELECT Endpoint
+        FROM URL
+        WHERE Type = @Type
+          AND Environment = @Environment
+          AND ApiType = @ApiType
+        LIMIT 1;";
+
+    using var command = new SQLiteCommand(sql, connection);
+
+    command.Parameters.AddWithValue("@Type", selectedTransactionType);
+    command.Parameters.AddWithValue("@Environment", SelectedEnvironment);
+    command.Parameters.AddWithValue("@ApiType", SelectedAPIType);
+
+    object result = command.ExecuteScalar();
+
+    txtURL.Text = result?.ToString() ?? string.Empty;
+}
+
+
+=====================
+
+
+using System.Data.SQLite;
+
+Also make sure your TransactionType ComboBox items are plain strings. If they are ComboBoxItem, use this instead:
+
+selectedTransactionType =
+    ((ComboBoxItem)cmbTransactionType.SelectedItem)?.Content?.ToString() ?? string.Empty;
+
+    txtURL.Text = result?.ToString() ?? string.Empty;
+}
