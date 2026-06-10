@@ -1,51 +1,11 @@
-<Style x:Key="PrimaryButtonStyle" TargetType="Button">
-    <Setter Property="Height" Value="40"/>
-    <Setter Property="Padding" Value="20,0"/>
-    <Setter Property="FontSize" Value="14"/>
-    <Setter Property="FontWeight" Value="SemiBold"/>
-    <Setter Property="Foreground" Value="White"/>
-    <Setter Property="Background" Value="#2563EB"/>
-    <Setter Property="BorderThickness" Value="0"/>
-    <Setter Property="Cursor" Value="Hand"/>
+<Button Style="{StaticResource PrimaryButtonStyle}"
+        Width="320">
 
-    <Setter Property="Template">
-        <Setter.Value>
-            <ControlTemplate TargetType="Button">
-                <Border x:Name="border"
-                        Background="{TemplateBinding Background}"
-                        CornerRadius="8">
-                    <ContentPresenter
-                        HorizontalAlignment="Center"
-                        VerticalAlignment="Center"/>
-                </Border>
+    <StackPanel Orientation="Horizontal"
+                HorizontalAlignment="Center">
+        <TextBlock Text="🔍"
+                   Margin="0,0,8,0"/>
+        <TextBlock Text="Call Member Search API"/>
+    </StackPanel>
 
-                <ControlTemplate.Triggers>
-
-                    <!-- Mouse Over -->
-                    <Trigger Property="IsMouseOver" Value="True">
-                        <Setter TargetName="border"
-                                Property="Background"
-                                Value="#1D4ED8"/>
-                    </Trigger>
-
-                    <!-- Pressed -->
-                    <Trigger Property="IsPressed" Value="True">
-                        <Setter TargetName="border"
-                                Property="Background"
-                                Value="#1E40AF"/>
-                    </Trigger>
-
-                    <!-- Disabled -->
-                    <Trigger Property="IsEnabled" Value="False">
-                        <Setter TargetName="border"
-                                Property="Background"
-                                Value="#CBD5E1"/>
-                        <Setter Property="Foreground"
-                                Value="#64748B"/>
-                    </Trigger>
-
-                </ControlTemplate.Triggers>
-            </ControlTemplate>
-        </Setter.Value>
-    </Setter>
-</Style>
+</Button>
