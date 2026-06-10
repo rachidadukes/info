@@ -1,58 +1,9 @@
-public class GetAllResponseResult
-{
-    public Entities.SearchMemberRs? RootResponse { get; set; }
-    public ResultWrapper<MemberSearchRespDTO>? Result { get; set; }
-}
+GetAllResponseResult response = await GetAllResponse(
+    selectedApiType,
+    SoapXMLRequest,
+    endpoint,
+    description);
 
-===========================
+searchMember = response.Result!;
 
-private async Task<GetAllResponseResult> GetAllResponse(
-    string selectedApiType,
-    string soapXMLRequest,
-    string endpoint,
-    string description)
-
-==========================
-
-return new GetAllResponseResult
-{
-    RootResponse = rootResponse,
-    Result = new ResultWrapper<MemberSearchRespDTO>
-    {
-        IsSuccess = true,
-        Data = memberSearchSimplified ?? new MemberSearchRespDTO()
-    }
-};
-
-===================
-
-return new GetAllResponseResult
-{
-    RootResponse = rootResponse,
-    Result = new ResultWrapper<MemberSearchRespDTO>
-    {
-        IsSuccess = false,
-        ErrorMessage = "Failed to deserialize XML response."
-    }
-};
-
-
-
-============
-
-return new GetAllResponseResult
-{
-    RootResponse = rootResponse,
-    Result = new ResultWrapper<MemberSearchRespDTO>
-    {
-        IsSuccess = false,
-        ErrorMessage = ex.Message
-    }
-};
-
-============================
-
-var response = await GetAllResponse(selectedApiType, soapXMLRequest, endpoint, description);
-
-var rootResponse = response.RootResponse;
-var resultWrapper = response.Result;
+return searchMember;
