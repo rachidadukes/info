@@ -1,9 +1,1 @@
-GetAllResponseResult response = await GetAllResponse(
-    selectedApiType,
-    SoapXMLRequest,
-    endpoint,
-    description);
 
-searchMember = response.Result!;
-
-return searchMember;
