@@ -1,41 +1,11 @@
-using System.Text;
+request = memberSearchResult.Request;
+response = memberSearchResult.RootResponse;
 
-namespace ApiApp.Services;
+// Existing logic to determine HostResponse
 
-public static class HostResponseLogger
-{
-    public static async Task SaveAsync(
-        string environment,
-        string searchType,
-        string request,
-        string response,
-        string summary)
-    {
-        string folder = Path.Combine(AppContext.BaseDirectory, "Logs");
-        Directory.CreateDirectory(folder);
-
-        string fileName = Path.Combine(
-            folder,
-            $"MemberSearch_{DateTime.Now:yyyyMMdd_HHmmss}.txt");
-
-        var output = new StringBuilder();
-
-        output.AppendLine($"Date: {DateTime.Now}");
-        output.AppendLine($"Environment: {environment}");
-        output.AppendLine($"Search Type: {searchType}");
-        output.AppendLine();
-
-        output.AppendLine("========== REQUEST ==========");
-        output.AppendLine(request);
-        output.AppendLine();
-
-        output.AppendLine("========== RESPONSE ==========");
-        output.AppendLine(response);
-        output.AppendLine();
-
-        output.AppendLine("========== SUMMARY ==========");
-        output.AppendLine(summary);
-
-        await File.WriteAllTextAsync(fileName, output.ToString());
-    }
-}
+await HostResponseLogger.SaveAsync(
+    selectedEnvironment,
+    selectedSearch,
+    request,
+    response,
+    HostResponse);
