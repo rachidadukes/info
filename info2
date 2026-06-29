@@ -1,11 +1,24 @@
-request = memberSearchResult.Request;
-response = memberSearchResult.RootResponse;
+Private Function IsValidWorkStation(section As NameValueCollection) As Boolean
 
-// Existing logic to determine HostResponse
+    Dim workStationsCsv As String =
+        If(If(section IsNot Nothing,
+              section(MessageConverterValues.ConfigKeys.WorkStations),
+              Nothing),
+           String.Empty)
 
-await HostResponseLogger.SaveAsync(
-    selectedEnvironment,
-    selectedSearch,
-    request,
-    response,
-    HostResponse);
+    ' No workstation list configured -> allow all
+    If String.IsNullOrWhiteSpace(workStationsCsv) Then
+        Return True
+    End If
+
+    Dim workStations As New HashSet(Of String)(
+        workStationsCsv.Split(New Char() {","c},
+                              StringSplitOptions.RemoveEmptyEntries).
+        Select(Function(s) s.Trim()),
+        StringComparer.OrdinalIgnoreCase)
+
+    Dim currentWorkStation As String = Environment.MachineName.Trim()
+
+    Return workStations.Contains(currentWorkStation)
+
+End Function
