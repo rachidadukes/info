@@ -1,5 +1,1 @@
-AccessNumbersList = AccessNumbersList
-    .GroupBy(x => x.AccessNumber)
-    .Select(g => g.First())
-    .OrderBy(x => x.AccessNumber)
-    .ToList();
+
