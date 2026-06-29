@@ -1,18 +1,1 @@
-If String.IsNullOrEmpty(tranCode) OrElse Not codes.Contains(tranCode) Then
-    Return MessageConverterValues.HostRoutes.LegacyEndpoint
-End If
 
-If Not IsValidWorkStation(section) Then
-    Return MessageConverterValues.HostRoutes.LegacyEndpoint
-End If
-
-Select Case routingMode
-    Case MessageConverterValues.HostRoutes.NewEndpoint
-        Return MessageConverterValues.HostRoutes.NewEndpoint
-
-    Case MessageConverterValues.HostRoutes.BothEndpoints
-        Return MessageConverterValues.HostRoutes.BothEndpoints
-
-    Case Else
-        Return MessageConverterValues.HostRoutes.LegacyEndpoint
-End Select
