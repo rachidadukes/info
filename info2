@@ -1,24 +1,18 @@
-Private Function IsValidWorkStation(section As NameValueCollection) As Boolean
+If String.IsNullOrEmpty(tranCode) OrElse Not codes.Contains(tranCode) Then
+    Return MessageConverterValues.HostRoutes.LegacyEndpoint
+End If
 
-    Dim workStationsCsv As String =
-        If(If(section IsNot Nothing,
-              section(MessageConverterValues.ConfigKeys.WorkStations),
-              Nothing),
-           String.Empty)
+If Not IsValidWorkStation(section) Then
+    Return MessageConverterValues.HostRoutes.LegacyEndpoint
+End If
 
-    ' No workstation list configured -> allow all
-    If String.IsNullOrWhiteSpace(workStationsCsv) Then
-        Return True
-    End If
+Select Case routingMode
+    Case MessageConverterValues.HostRoutes.NewEndpoint
+        Return MessageConverterValues.HostRoutes.NewEndpoint
 
-    Dim workStations As New HashSet(Of String)(
-        workStationsCsv.Split(New Char() {","c},
-                              StringSplitOptions.RemoveEmptyEntries).
-        Select(Function(s) s.Trim()),
-        StringComparer.OrdinalIgnoreCase)
+    Case MessageConverterValues.HostRoutes.BothEndpoints
+        Return MessageConverterValues.HostRoutes.BothEndpoints
 
-    Dim currentWorkStation As String = Environment.MachineName.Trim()
-
-    Return workStations.Contains(currentWorkStation)
-
-End Function
+    Case Else
+        Return MessageConverterValues.HostRoutes.LegacyEndpoint
+End Select
