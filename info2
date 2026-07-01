@@ -1,1 +1,10 @@
+$env:HTTPS_PROXY = "http://NFCU\15308:F`$8080rst!fatiha@binnacle.nfcu.net:8080"
+
+python -m pip install requests
+
+
+Remove-Item Env:HTTPS_PROXY
+Remove-Item Env:HTTP_PROXY
+python -m pip install requests
+
 
