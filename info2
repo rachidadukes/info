@@ -1,1 +1,49 @@
+import http.client
+import json
 
+
+def get_employee_accounts():
+    conn = http.client.HTTPSConnection("intg-dpa-lb.nfcutest.net", 5508)
+
+    payload = json.dumps({
+        "rquid": "b1f8570b-b2c7-4789-88ce-6767757b2857",
+        "employeeID": "37015"
+    })
+
+    headers = {
+        "Content-Type": "application/json"
+    }
+
+    conn.request(
+        "POST",
+        "/NFCUBranchTellerServices/rest/employee-account-relationships/v1/employee/relationships/accounts",
+        payload,
+        headers
+    )
+
+    res = conn.getresponse()
+    data = res.read()
+
+    return data.decode("utf-8")
+
+
+
+=======================
+import json
+from api_response import get_employee_accounts
+
+
+response = get_employee_accounts()
+
+response_json = json.loads(response)
+
+accounts = response_json["accounts"]
+
+print(type(accounts))
+print(len(accounts))
+
+first_account = accounts[0]
+
+print(first_account)
+
+=============================
