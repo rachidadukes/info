@@ -1,0 +1,153 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Employee Accounts API - Technical Design</title>
+<style>
+body{margin:0;font-family:Segoe UI,Arial;background:#0f172a;color:#e2e8f0}
+header{background:#1e293b;padding:30px}
+h1{margin:0;color:#7dd3fc;font-size:44px}
+h2{color:#38bdf8;border-bottom:2px solid #334155;padding-bottom:6px}
+.container{max-width:1200px;margin:auto;padding:30px}
+.card{background:#1e293b;border-radius:12px;padding:20px;margin:18px 0;box-shadow:0 4px 12px rgba(0,0,0,.3)}
+.flow{display:flex;flex-direction:column;align-items:center;font-weight:bold}
+.box{background:#0ea5e9;color:white;padding:12px 18px;border-radius:10px;width:420px;text-align:center;margin:8px}
+.arrow{font-size:30px;color:#7dd3fc}
+pre{background:#020617;padding:15px;border-radius:10px;overflow:auto;color:#cbd5e1}
+table{width:100%;border-collapse:collapse}
+th,td{border:1px solid #334155;padding:10px}
+th{background:#0f766e}
+.good{background:#14532d;padding:15px;border-radius:10px}
+.todo{background:#78350f;padding:15px;border-radius:10px}
+</style>
+</head>
+<body>
+<header>
+<h1>Employee Accounts API - Technical Design</h1>
+<p>Living architecture document for the Employee Accounts application</p>
+</header>
+
+<div class="container">
+
+<div class="card">
+<h2>Project Goal</h2>
+<p>
+Learn Python by building a real application that communicates with the Employee Accounts API.
+The objective is not simply to call an API, but to progressively build a clean architecture
+similar to a .NET application while learning Python fundamentals one concept at a time.
+</p>
+</div>
+
+<div class="card">
+<h2>Project Structure</h2>
+<pre>
+PythonAPI_App/
+│
+├── main.py               # Application entry point
+├── api_response.py       # Makes the HTTP request
+├── models.py             # Future model classes
+├── emp_accts_repository.py (optional repository)
+├── requirements.txt
+└── README.md
+</pre>
+</div>
+
+<div class="card">
+<h2>Application Workflow</h2>
+<div class="flow">
+<div class="box">Run main.py</div>
+<div class="arrow">↓</div>
+<div class="box">Import get_employee_accounts() from api_response.py</div>
+<div class="arrow">↓</div>
+<div class="box">Call get_employee_accounts()</div>
+<div class="arrow">↓</div>
+<div class="box">Create HTTPS Connection</div>
+<div class="arrow">↓</div>
+<div class="box">Build JSON Payload</div>
+<div class="arrow">↓</div>
+<div class="box">Send POST Request</div>
+<div class="arrow">↓</div>
+<div class="box">Receive JSON Response</div>
+<div class="arrow">↓</div>
+<div class="box">Return JSON String to main.py</div>
+<div class="arrow">↓</div>
+<div class="box">json.loads(response)</div>
+<div class="arrow">↓</div>
+<div class="box">response_json['accounts']</div>
+<div class="arrow">↓</div>
+<div class="box">Loop through accounts and display information</div>
+</div>
+</div>
+
+<div class="card">
+<h2>Sequence</h2>
+<pre>
+main.py
+   |
+   | get_employee_accounts()
+   v
+api_response.py
+   |
+   | HTTPS POST
+   v
+Employee Accounts API
+   |
+   | JSON Response
+   v
+api_response.py
+   |
+   | return response
+   v
+main.py
+   |
+   | json.loads()
+   |
+   | accounts = response_json["accounts"]
+   |
+   | process data
+</pre>
+</div>
+
+<div class="card">
+<h2>Concepts Learned</h2>
+<table>
+<tr><th>Python</th><th>Purpose</th><th>C# Equivalent</th></tr>
+<tr><td>def</td><td>Create a function</td><td>method</td></tr>
+<tr><td>import</td><td>Use another module</td><td>using</td></tr>
+<tr><td>json.loads()</td><td>Parse JSON</td><td>JsonSerializer.Deserialize()</td></tr>
+<tr><td>dict</td><td>Dictionary</td><td>Dictionary&lt;string,object&gt;</td></tr>
+<tr><td>list</td><td>Collection</td><td>List&lt;T&gt;</td></tr>
+<tr><td>for account in accounts</td><td>Iteration</td><td>foreach</td></tr>
+</table>
+</div>
+
+<div class="card good">
+<h2>Current Milestone</h2>
+<ul>
+<li>Virtual environment created.</li>
+<li>API call working.</li>
+<li>JSON parsed successfully.</li>
+<li>Accounts list extracted.</li>
+<li>Ready to build model classes.</li>
+</ul>
+</div>
+
+<div class="card todo">
+<h2>Roadmap</h2>
+<ol>
+<li>Create Account model.</li>
+<li>Map dictionaries to objects.</li>
+<li>Create repository layer.</li>
+<li>Add service layer.</li>
+<li>Add configuration file.</li>
+<li>Add logging.</li>
+<li>Add unit tests.</li>
+<li>Package the application.</li>
+</ol>
+</div>
+
+</div>
+<p><strong>Related Documents:</strong> <a href="Employee_Accounts_API_Source_Code.html">Source Code Documentation</a></p>
+</body>
+</html>

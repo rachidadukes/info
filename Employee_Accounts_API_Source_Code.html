@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Employee Accounts API - Source Code</title>
+<style>
+body{font-family:Segoe UI,Arial,sans-serif;background:#f4f6f8;margin:40px}
+h1,h2{color:#1f4e79}
+pre{background:#1e1e1e;color:#dcdcdc;padding:18px;border-radius:8px;overflow:auto}
+.section{background:white;padding:20px;border-radius:10px;margin-bottom:25px;box-shadow:0 2px 8px rgba(0,0,0,.08)}
+a{color:#0b62d6}
+</style>
+</head>
+<body>
+
+<h1>Employee Accounts API - Source Code</h1>
+
+<div class="section">
+<h2>api_response.py</h2>
+<p><strong>Responsibility:</strong> Connects to the Employee Accounts REST API, sends the request payload, receives the JSON response, and returns it to the caller.</p>
+<pre># api_response.py
+
+import http.client
+import json
+
+
+def get_employee_accounts():
+    conn = http.client.HTTPSConnection(&quot;intg-dpa-lb.nfcutest.net&quot;, 5508)
+
+    payload = json.dumps({
+        &quot;rquid&quot;: &quot;b1f8570b-b2c7-4789-88ce-6767757b2857&quot;,
+        &quot;employeeID&quot;: &quot;37015&quot;
+    })
+
+    headers = {
+        &quot;Content-Type&quot;: &quot;application/json&quot;
+    }
+
+    conn.request(
+        &quot;POST&quot;,
+        &quot;/NFCUBranchTellerServices/rest/employee-account-relationships/v1/employee/relationships/accounts&quot;,
+        payload,
+        headers
+    )
+
+    res = conn.getresponse()
+    data = res.read()
+
+    return data.decode(&quot;utf-8&quot;)
+</pre>
+</div>
+
+<div class="section">
+<h2>main.py</h2>
+<p><strong>Responsibility:</strong> Calls the API function, parses the JSON response, extracts the accounts collection, and displays account information.</p>
+<pre># main.py
+
+from api_response import get_employee_accounts
+import json
+
+response = get_employee_accounts()
+response_json = json.loads(response)
+
+accounts = response_json[&quot;accounts&quot;]
+
+print(f&quot;Total accounts: {len(accounts)}&quot;)
+
+for account in accounts:
+    print(account[&quot;accountType&quot;], account[&quot;accountNumber&quot;])
+</pre>
+</div>
+
+<p><a href="Employee_Accounts_API_Technical_Design.html">← Return to Technical Design</a></p>
+
+</body>
+</html>
