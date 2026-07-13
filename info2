@@ -1,13 +1,1 @@
-If isNew Then
-    If Not hasValidTranCode OrElse Not hasValidWorkStation Then
-        Return MessageConverterValues.HostRoutes.LegacyEndpoint
-    End If
 
-    Return MessageConverterValues.HostRoutes.NewEndpoint
-End If
-
-If isBoth Then
-    Return MessageConverterValues.HostRoutes.BothEndpoints
-End If
-
-Return MessageConverterValues.HostRoutes.LegacyEndpoint
