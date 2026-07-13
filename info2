@@ -1,5 +1,1 @@
-Dim isLegacy As Boolean =
-    String.Equals(
-        routingMode,
-        MessageConverterValues.HostRoutes.LegacyEndpoint,
-        StringComparison.OrdinalIgnoreCase)
+
