@@ -1,5 +1,5 @@
-Dim codes As New HashSet(Of String)(
-    If(codesCsv, String.Empty).
-        Split(New Char() {","c}, StringSplitOptions.RemoveEmptyEntries).
-        Select(Function(s) s.Trim()),
-    StringComparer.OrdinalIgnoreCase)
+Dim isLegacy As Boolean =
+    String.Equals(
+        routingMode,
+        MessageConverterValues.HostRoutes.LegacyEndpoint,
+        StringComparison.OrdinalIgnoreCase)
