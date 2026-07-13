@@ -1,9 +1,1 @@
-Dim hasValidTranCode As Boolean =
-    Not String.IsNullOrWhiteSpace(tranCode) AndAlso
-    codes.Contains(tranCode)
 
-Dim useLegacy As Boolean =
-    String.IsNullOrWhiteSpace(routingMode) OrElse
-    Not isSupportedRoutingMode OrElse
-    Not hasValidTranCode OrElse
-    Not hasValidWorkStation
