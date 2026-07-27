@@ -1,1 +1,65 @@
+using Spectre.Console;
 
+namespace LegalHoldTracking;
+
+public static class ConsoleUi
+{
+    public static void DisplayEJHeaderSummary(EJHeaderSummaryDto summary)
+    {
+        var table = new Table()
+            .Border(TableBorder.Rounded)
+            .BorderColor(Color.Grey)
+            .HideHeaders()
+            .AddColumn(new TableColumn("Property"))
+            .AddColumn(new TableColumn("Value").RightAligned());
+
+        table.AddRow(
+            "[deepskyblue1]Largest Record ID[/]",
+            $"[bold white]{summary.LargestRecordID:N0}[/]");
+
+        table.AddRow(
+            "[deepskyblue1]Newest User ID[/]",
+            $"[bold white]{Markup.Escape(summary.NewestUserID ?? "N/A")}[/]");
+
+        table.AddRow(
+            "[deepskyblue1]Total Records[/]",
+            $"[green]{summary.TotalRecords:N0}[/]");
+
+        table.AddRow(
+            "[deepskyblue1]Total Unique Users[/]",
+            $"[green]{summary.TotalUniqueUsers:N0}[/]");
+
+        table.AddRow(
+            "[deepskyblue1]Unique Account Numbers[/]",
+            $"[green]{summary.UniqueAccountNumbers:N0}[/]");
+
+        table.AddRow(
+            "[deepskyblue1]Unique Transaction Names[/]",
+            $"[green]{summary.TotalUniqueTransactionNames:N0}[/]");
+
+        table.AddRow(
+            "[deepskyblue1]Calendar Date Range[/]",
+            $"[yellow]{summary.EarliestCalendarDate:MM/dd/yyyy}[/] " +
+            "[grey]to[/] " +
+            $"[yellow]{summary.LatestCalendarDate:MM/dd/yyyy}[/]");
+
+        table.AddRow(
+            "[deepskyblue1]EJ Time Range[/]",
+            $"[yellow]{summary.EarliestEJTime:MM/dd/yyyy}[/] " +
+            "[grey]to[/] " +
+            $"[yellow]{summary.LatestEJTime:MM/dd/yyyy}[/]");
+
+        var panel = new Panel(table)
+        {
+            Header = new PanelHeader(
+                " [bold yellow]EJ Header Summary[/] ",
+                Justify.Center),
+
+            Border = BoxBorder.Double,
+            BorderStyle = new Style(Color.DodgerBlue1),
+            Padding = new Padding(1, 1)
+        };
+
+        AnsiConsole.Write(panel);
+    }
+}
