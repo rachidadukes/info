@@ -1,1 +1,23 @@
 
+var grid = new Grid();
+
+grid.AddColumn(new GridColumn().NoWrap());
+grid.AddColumn();
+
+foreach (var detail in First20Records)
+{
+    grid.AddRow("[bold deepskyblue1]🆔 Record ID[/]",
+        $"[bold yellow]{detail.RecordID:N0}[/]");
+
+    grid.AddRow("[bold deepskyblue1]🔢 Field Sequence[/]",
+        $"[bold yellow]{detail.FieldSequence:N0}[/]");
+
+    grid.AddRow("[bold deepskyblue1]📄 Field Name[/]",
+        $"[white]{Markup.Escape(detail.FieldName ?? "N/A")}[/]");
+
+    grid.AddRow("[bold deepskyblue1]🧬 Field Type[/]",
+        $"[green]{Markup.Escape(detail.FieldType ?? "N/A")}[/]");
+
+    grid.AddRow("[bold deepskyblue1]📋 Field Value[/]",
+        $"[bold gold1]{Markup.Escape(detail.FieldValue ?? "N/A")}[/]");
+}
