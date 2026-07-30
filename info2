@@ -1,1 +1,31 @@
+cleanXMLResponse = XmlNamespaceHelper.StripNamespaces(responseBody);
 
+if (!IsValidXml(cleanXMLResponse))
+{
+    // Save the bad response if desired
+    saveHistory.SaveRequestResponse(SoapXMLRequest, responseBody, userSelection);
+    return null;    // Skip deserialization
+}
+
+XmlSerializer serializer = new XmlSerializer(typeof(Entities.SearchMemberRs));
+
+using StringReader stringReader = new StringReader(cleanXMLResponse);
+rootResponse = (Entities.SearchMemberRs)serializer.Deserialize(stringReader)!;
+========================================
+
+private static bool IsValidXml(string xml)
+{
+    if (string.IsNullOrWhiteSpace(xml))
+        return false;
+
+    try
+    {
+        using var reader = XmlReader.Create(new StringReader(xml));
+        while (reader.Read()) { }
+        return true;
+    }
+    catch (XmlException)
+    {
+        return false;
+    }
+}
