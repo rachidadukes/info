@@ -1,22 +1,25 @@
+// **********************************************************************
+// ⚠️ DANGER - DEVELOPMENT/TEST ONLY
+//
+// This disables ALL SSL/TLS certificate validation.
+// Use ONLY when connecting to a trusted development server that has
+// an expired or self-signed certificate.
+//
+// NEVER deploy this to Production.
+// Remove this code as soon as the server certificate is fixed.
+// **********************************************************************
 
+
+HttpClient httpClient;
+
+#if DEBUG
+// Development only - bypass SSL certificate validation.
 HttpClientHandler handler = new HttpClientHandler();
-
 handler.ServerCertificateCustomValidationCallback =
     HttpClientHandler.DangerousAcceptAnyServerCertificateValidator;
 
-HttpClient httpClient = new HttpClient(handler);
-
-var request = new HttpRequestMessage(HttpMethod.Post, userSelection.Endpoint);
-
-request.Content = new StringContent(
-    sendMessage ?? "",
-    Encoding.UTF8,
-    "application/xml");
-
-HttpResponseMessage response = await httpClient.SendAsync(request);
-
-response.EnsureSuccessStatusCode();
-
-string responseXMLContent = await response.Content.ReadAsStringAsync();
-
-mainResponse = responseXMLContent;
+httpClient = new HttpClient(handler);
+#else
+// Production
+httpClient = new HttpClient();
+#endif
