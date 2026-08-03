@@ -1,18 +1,30 @@
 var panel = new Panel(
     new Rows(
-        new Markup("[yellow]SELECT[/] TOP (10)"),
-        new Markup("    [white][RecordID],[/]"),
-        new Markup("    [white][FieldSequence],[/]"),
-        new Markup("    [white][FieldName],[/]"),
-        new Markup("    [white][FieldType],[/]"),
-        new Markup("    [white][FieldValue][/]"),
+        new Markup("[yellow]SELECT[/] [white]TOP (10)[/]"),
+
+        new Markup("    [white][[RecordID]],[/]"),
+        new Markup("    [white][[FieldSequence]],[/]"),
+        new Markup("    [white][[FieldName]],[/]"),
+        new Markup("    [white][[FieldType]],[/]"),
+        new Markup("    [white][[FieldValue]][/]"),
+
         Text.Empty,
-        new Markup("[yellow]FROM[/] [deepskyblue1][EncoreUnit].[dbo].[EJDetail][/]"),
-        new Markup("[yellow]WHERE[/] [green][FieldType][/]=" +
-                   "[orange1]'F4'[/] [yellow]IN[/] ([orange1]'F4'[/], [orange1]'F5'[/], [orange1]'F6'[/])")
+
+        new Markup(
+            "[yellow]FROM[/] " +
+            "[deepskyblue1][[EncoreUnit]].[[dbo]].[[EJDetail]][/]"),
+
+        new Markup(
+            "[yellow]WHERE[/] " +
+            "[white][[FieldType]][/] " +
+            "[yellow]IN[/] " +
+            "([green]'F4'[/], [green]'F5'[/], [green]'F6'[/]);")
     ))
 {
-    Header = new PanelHeader("[bold cyan] SQL Query [/]", Justify.Center),
+    Header = new PanelHeader(
+        "[bold cyan] SQL Query [/]",
+        Justify.Center),
+
     Border = BoxBorder.Double,
     BorderStyle = new Style(Color.Blue),
     Padding = new Padding(2, 1),
@@ -20,3 +32,4 @@ var panel = new Panel(
 };
 
 AnsiConsole.Write(panel);
+AnsiConsole.WriteLine();
