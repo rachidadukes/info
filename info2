@@ -1,1 +1,30 @@
 
+var query =
+    """
+    SELECT TOP (10)
+        [RecordID],
+        [FieldSequence],
+        [FieldName],
+        [FieldType],
+        [FieldValue]
+    FROM [EncoreUnit].[dbo].[EJDetail]
+    WHERE [FieldType] IN ('F4', 'F5', 'F6');
+    """;
+
+var sqlSyntax = new Syntax(query, "sql", Color.Green)
+{
+    IndentationGuides = new IndentationGuides()
+        .HighlightStyle(Style.Parse("grey")),
+};
+
+var queryPanel = new Panel(sqlSyntax)
+{
+    Header = new PanelHeader("[bold yellow] SQL Query [/]", Justify.Left),
+    Border = BoxBorder.Rounded,
+    BorderStyle = new Style(Color.Blue),
+    Padding = new Padding(1, 1, 1, 1),
+    Expand = true
+};
+
+AnsiConsole.Write(queryPanel);
+AnsiConsole.WriteLine();
