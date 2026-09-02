@@ -1,1 +1,11 @@
-
+{
+  "MFFURRequestHeader": {
+    "ccCodeDetail": "37155",
+    "xGUID": "6849202e-A37E-4d9a-8ac1-6E106e817458",
+    "consumerChannel": "TP",
+    "consumingApplicationName": "ETS"
+  },
+  "membershipType": "P",
+  "fullName": "JASON BOURNE",
+  "activeStatusIndicator": "O"
+}
