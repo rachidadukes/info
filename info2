@@ -1,3 +1,6 @@
+using System.Net.Http.Json;
+using LegalHoldAdmin.Models;
+
 namespace LegalHoldAdmin.Services;
 
 public sealed class MemberApiClient
@@ -20,22 +23,22 @@ public sealed class MemberApiClient
             request.Headers.Add("x-nfcu-clientid", GetRequiredSetting("MemberApi:ClientId"));
             request.Headers.Add("x-nfcu-clientsecret", GetRequiredSetting("MemberApi:ClientSecret"));
 
-            var body = new
+            var memberSearchRequest = new MemberSearchRequest
             {
-                NFCURequestHeader = new
+                NFCURequestHeader = new NfcuRequestHeader
                 {
-                    credential = GetRequiredSetting("MemberApi:Credential"),
-                    rqUID = Guid.NewGuid().ToString(),
-                    consumerChannel = GetRequiredSetting("MemberApi:ConsumerChannel"),
-                    consumingApplicationName = GetRequiredSetting("MemberApi:ConsumingApplicationName")
+                    Credential = GetRequiredSetting("MemberApi:Credential"),
+                    RqUID = Guid.NewGuid().ToString(),
+                    ConsumerChannel = GetRequiredSetting("MemberApi:ConsumerChannel"),
+                    ConsumingApplicationName = GetRequiredSetting("MemberApi:ConsumingApplicationName")
                 },
-                membershipType = "P",
-                firstName,
-                lastName,
-                activeStatusIndicator = "0"
+                MembershipType = "P",
+                FirstName = firstName,
+                LastName = lastName,
+                ActiveStatusIndicator = "0"
             };
 
-            request.Content = JsonContent.Create(body);
+            request.Content = JsonContent.Create(memberSearchRequest);
 
             using var response = await _httpClient.SendAsync(request, cancellationToken);
             var responseBody = await response.Content.ReadAsStringAsync(cancellationToken);
