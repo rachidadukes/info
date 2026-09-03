@@ -1,11 +1,61 @@
+namespace LegalHoldAdmin.Services;
+
+public sealed class MemberApiClient
 {
-  "MFFURRequestHeader": {
-    "ccCodeDetail": "37155",
-    "xGUID": "6849202e-A37E-4d9a-8ac1-6E106e817458",
-    "consumerChannel": "TP",
-    "consumingApplicationName": "ETS"
-  },
-  "membershipType": "P",
-  "fullName": "JASON BOURNE",
-  "activeStatusIndicator": "O"
+    private readonly HttpClient _httpClient;
+    private readonly IConfiguration _configuration;
+
+    public MemberApiClient(HttpClient httpClient, IConfiguration configuration)
+    {
+        _httpClient = httpClient;
+        _configuration = configuration;
+    }
+
+    public async Task<string> SearchMemberAsync(string firstName, string lastName, CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            using var request = new HttpRequestMessage(HttpMethod.Post, "member/v1/members/search");
+
+            request.Headers.Add("x-nfcu-clientid", GetRequiredSetting("MemberApi:ClientId"));
+            request.Headers.Add("x-nfcu-clientsecret", GetRequiredSetting("MemberApi:ClientSecret"));
+
+            var body = new
+            {
+                NFCURequestHeader = new
+                {
+                    credential = GetRequiredSetting("MemberApi:Credential"),
+                    rqUID = Guid.NewGuid().ToString(),
+                    consumerChannel = GetRequiredSetting("MemberApi:ConsumerChannel"),
+                    consumingApplicationName = GetRequiredSetting("MemberApi:ConsumingApplicationName")
+                },
+                membershipType = "P",
+                firstName,
+                lastName,
+                activeStatusIndicator = "0"
+            };
+
+            request.Content = JsonContent.Create(body);
+
+            using var response = await _httpClient.SendAsync(request, cancellationToken);
+            var responseBody = await response.Content.ReadAsStringAsync(cancellationToken);
+
+            if (!response.IsSuccessStatusCode)
+            {
+                return $"Member API returned {(int)response.StatusCode} {response.ReasonPhrase}:{Environment.NewLine}{responseBody}";
+            }
+
+            return responseBody;
+        }
+        catch (Exception ex) when (ex is not OperationCanceledException)
+        {
+            throw new InvalidOperationException("Unable to call the Member API. See the inner exception for details.", ex);
+        }
+    }
+
+    private string GetRequiredSetting(string key)
+    {
+        return _configuration[key]
+            ?? throw new InvalidOperationException($"Missing required configuration setting '{key}'.");
+    }
 }
