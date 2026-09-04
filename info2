@@ -1,7 +1,53 @@
-@page "/"
-@rendermode InteractiveServer
+using LegalHoldAdmin.Components;
+using LegalHoldAdmin.Data;
+using LegalHoldAdmin.Services;
+using Microsoft.AspNetCore.DataProtection;
+using Radzen;
 
-<h1>Legal Hold Administration</h1>
+var builder = WebApplication.CreateBuilder(args);
 
-<p><a class="button" href="/legal-holds">Open Legal Holds</a></p>
-<p><a class="button" href="/members-by-last-name">Open Members By Last Name</a></p>
+builder.Logging.ClearProviders();
+builder.Logging.AddConsole();
+
+// Add services to the container.
+builder.Services.AddRazorComponents()
+    .AddInteractiveServerComponents();
+builder.Services.AddDataProtection()
+    .PersistKeysToFileSystem(new DirectoryInfo(Path.Combine(builder.Environment.ContentRootPath, ".keys")))
+    .SetApplicationName("LegalHoldAdmin");
+builder.Services.AddRadzenComponents();
+builder.Services.AddScoped<ILegalHoldRepository, LegalHoldRepository>();
+builder.Services.AddHttpClient<MemberApiClient>((serviceProvider, client) =>
+{
+    var configuration = serviceProvider.GetRequiredService<IConfiguration>();
+    var baseUrl = configuration["MemberApi:BaseUrl"]
+        ?? throw new InvalidOperationException("Missing required configuration setting 'MemberApi:BaseUrl'.");
+
+    client.BaseAddress = new Uri(baseUrl);
+});
+builder.Services.AddHttpClient<MembersByFullNameApi>((serviceProvider, client) =>
+{
+    var configuration = serviceProvider.GetRequiredService<IConfiguration>();
+    var baseUrl = configuration["MemberApi:BaseUrl"]
+        ?? throw new InvalidOperationException("Missing required configuration setting 'MemberApi:BaseUrl'.");
+
+    client.BaseAddress = new Uri(baseUrl);
+});
+
+var app = builder.Build();
+
+// Configure the HTTP request pipeline.
+if (!app.Environment.IsDevelopment())
+{
+    app.UseExceptionHandler("/Error", createScopeForErrors: true);
+}
+
+
+app.UseAntiforgery();
+
+app.MapStaticAssets();
+app.MapRazorComponents<App>()
+    .AddInteractiveServerRenderMode();
+
+app.Run();
+
