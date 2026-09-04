@@ -1,1 +1,7 @@
+@page "/"
+@rendermode InteractiveServer
 
+<h1>Legal Hold Administration</h1>
+
+<p><a class="button" href="/legal-holds">Open Legal Holds</a></p>
+<p><a class="button" href="/members-by-last-name">Open Members By Last Name</a></p>
