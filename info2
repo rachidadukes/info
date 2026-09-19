@@ -1,1 +1,1 @@
-
+Get-ChildItem "$env:LOCALAPPDATA\Microsoft\Microsoft SQL Server Local DB\Instances\MSSQLLocalDB"
